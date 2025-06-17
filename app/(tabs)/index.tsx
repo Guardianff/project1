@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Bell, Search, BookOpen } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
@@ -19,9 +20,14 @@ import { Button } from '@/components/ui/Button';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+
+  const handleNotificationPress = () => {
+    router.push('/notifications');
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
@@ -38,7 +44,7 @@ export default function HomeScreen() {
               title=""
               variant="ghost"
               icon={<Bell size={24} color={colors.text} />}
-              onPress={() => {}}
+              onPress={handleNotificationPress}
               style={styles.iconButton}
             />
             <View style={[styles.notificationBadge, { backgroundColor: colors.error[500] }]} />
