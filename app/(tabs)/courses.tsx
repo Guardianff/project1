@@ -11,7 +11,8 @@ import {
   RefreshControl
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Filter, ChevronDown } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { Filter, ChevronDown, Grid3X3, LayoutGrid } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -25,6 +26,7 @@ import { Course } from '@/types/course';
 const allCourses = [...featuredCourses, ...recommendedCourses];
 
 export default function CoursesScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -79,6 +81,10 @@ export default function CoursesScreen() {
     setSelectedLevel(null);
   };
 
+  const handleCategoriesPress = () => {
+    router.push('/categories');
+  };
+
   const renderCategoryFilter = ({ item }: { item: typeof categories[0] }) => (
     <TouchableOpacity
       style={[
@@ -115,7 +121,14 @@ export default function CoursesScreen() {
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Courses</Text>
+          <View style={styles.headerContent}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Courses</Text>
+            <TouchableOpacity onPress={handleCategoriesPress}>
+              <Text style={[styles.viewCategoriesText, { color: colors.primary[500] }]}>
+                View Categories
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar */}
@@ -124,6 +137,18 @@ export default function CoursesScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+
+        {/* Browse Categories Button */}
+        <View style={styles.browseCategoriesContainer}>
+          <Button
+            title="Browse All Categories"
+            variant="outline"
+            icon={<LayoutGrid size={18} color={colors.primary[500]} />}
+            iconPosition="left"
+            onPress={handleCategoriesPress}
+            style={styles.browseCategoriesButton}
+          />
+        </View>
 
         {/* Filters */}
         <View style={styles.filtersContainer}>
@@ -271,9 +296,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+  },
+  viewCategoriesText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  browseCategoriesContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  browseCategoriesButton: {
+    alignSelf: 'flex-start',
   },
   filtersContainer: {
     paddingHorizontal: 16,
