@@ -11,16 +11,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  ArrowLeft,
-  Filter,
-  SortAsc,
-  BookOpen,
-  Clock,
-  Star,
-  Users,
-  Play
-} from 'lucide-react-native';
+import { ArrowLeft, Filter, Import as SortAsc, BookOpen, Clock, Star, Users, Play } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from '@/components/ui/SearchBar';
