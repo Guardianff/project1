@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Filter, ChevronDown, Grid3X3, LayoutGrid } from 'lucide-react-native';
+import { Filter, ChevronDown, Grid3x3 as Grid3X3, LayoutGrid } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from '@/components/ui/SearchBar';
