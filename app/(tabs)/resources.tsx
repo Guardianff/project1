@@ -15,31 +15,7 @@ import {
   Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  Search, 
-  Download, 
-  Award, 
-  BookOpen, 
-  FileText, 
-  Code, 
-  Briefcase, 
-  Palette,
-  ExternalLink,
-  Filter,
-  Grid3x3,
-  List,
-  Calendar,
-  Building,
-  Share2,
-  Copy,
-  CheckCircle,
-  X,
-  Eye,
-  Users,
-  Star,
-  Clock,
-  Shield
-} from 'lucide-react-native';
+import { Search, Download, Award, BookOpen, FileText, Code, Briefcase, Palette, ExternalLink, Filter, Grid3x3, List, Calendar, Building, Share2, Copy, CircleCheck as CheckCircle, X, Eye, Users, Star, Clock, Shield } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
