@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   TextInput,
 } from 'react-native';
-import { X, Github, Linkedin, TriangleAlert as AlertTriangle, CircleCheck as CheckCircle, CreditCard as Edit3 } from 'lucide-react-native';
+import { X, Github, Linkedin, AlertTriangle, CheckCircle, Edit3 } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
