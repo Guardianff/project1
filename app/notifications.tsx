@@ -26,113 +26,105 @@ import {
   CheckCheck,
   Settings,
   Filter,
-  Clock
+  Clock,
+  Sparkles,
+  Calendar,
+  Users,
+  MessageCircle
 } from 'lucide-react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
 interface Notification {
   id: string;
-  type: 'course' | 'progress' | 'challenge' | 'milestone' | 'announcement';
-  category: 'coding' | 'fitness' | 'language' | 'general';
+  type: 'course' | 'progress' | 'challenge' | 'milestone' | 'announcement' | 'ai' | 'coaching' | 'resource';
+  category: 'courses' | 'coaching' | 'resources' | 'ai' | 'general';
   title: string;
   message: string;
   timestamp: string;
   isRead: boolean;
   actionUrl?: string;
+  priority: 'low' | 'medium' | 'high';
 }
 
 const mockNotifications: Notification[] = [
   {
     id: '1',
-    type: 'milestone',
-    category: 'language',
-    title: 'Spanish Milestone Achieved!',
-    message: 'Congratulations! You\'ve completed 50 Spanish lessons and earned the "Conversationalist" badge.',
+    type: 'ai',
+    category: 'ai',
+    title: 'AI Insight: Perfect Learning Time',
+    message: 'Based on your activity, now is your optimal learning window. Ready to tackle that React Native lesson?',
     timestamp: '2025-01-15T10:30:00Z',
     isRead: false,
-    actionUrl: '/achievements'
+    priority: 'high',
+    actionUrl: '/courses/react-native'
   },
   {
     id: '2',
-    type: 'challenge',
-    category: 'fitness',
-    title: 'Daily Workout Reminder',
-    message: 'Time for your 30-minute HIIT workout! Keep your streak going - you\'re on day 12.',
-    timestamp: '2025-01-15T08:00:00Z',
+    type: 'coaching',
+    category: 'coaching',
+    title: 'Coaching Session Reminder',
+    message: 'Your career strategy session with Robert Williams starts in 30 minutes.',
+    timestamp: '2025-01-15T09:30:00Z',
     isRead: false,
-    actionUrl: '/fitness/workout'
+    priority: 'high',
+    actionUrl: '/coaching/session/1'
   },
   {
     id: '3',
-    type: 'course',
-    category: 'coding',
-    title: 'New Course Available',
-    message: 'Advanced React Native Development is now available. Perfect for your current skill level!',
+    type: 'milestone',
+    category: 'courses',
+    title: 'Congratulations! Course Completed',
+    message: 'You\'ve successfully completed "UI/UX Design Fundamentals" and earned your certificate!',
     timestamp: '2025-01-14T16:45:00Z',
     isRead: true,
-    actionUrl: '/courses/react-native-advanced'
+    priority: 'medium',
+    actionUrl: '/achievements'
   },
   {
     id: '4',
-    type: 'progress',
-    category: 'coding',
-    title: 'Weekly Progress Update',
-    message: 'Great week! You completed 3 coding challenges and improved your JavaScript skills by 15%.',
+    type: 'challenge',
+    category: 'general',
+    title: 'Weekly Challenge: 7-Day Streak',
+    message: 'You\'re on day 6 of your learning streak! Complete one more lesson to earn the Consistency Champion badge.',
     timestamp: '2025-01-14T12:00:00Z',
     isRead: true,
-    actionUrl: '/progress'
+    priority: 'medium',
+    actionUrl: '/challenges'
   },
   {
     id: '5',
-    type: 'announcement',
-    category: 'general',
-    title: 'New Feature: AI Study Buddy',
-    message: 'Meet your new AI-powered study companion! Get personalized learning recommendations and instant help.',
+    type: 'resource',
+    category: 'resources',
+    title: 'New Resource Available',
+    message: 'Advanced React Native Development Kit has been added to your resources library.',
     timestamp: '2025-01-13T14:20:00Z',
     isRead: false,
-    actionUrl: '/features/ai-buddy'
+    priority: 'low',
+    actionUrl: '/resources'
   },
   {
     id: '6',
-    type: 'challenge',
-    category: 'language',
-    title: 'French Speaking Challenge',
-    message: 'Join this week\'s pronunciation challenge! Practice with native speakers and win exclusive badges.',
+    type: 'announcement',
+    category: 'general',
+    title: 'Platform Update: Enhanced AI Features',
+    message: 'We\'ve upgraded our AI assistant with better personalization and goal tracking capabilities.',
     timestamp: '2025-01-13T09:15:00Z',
     isRead: true,
-    actionUrl: '/challenges/french-speaking'
-  },
-  {
-    id: '7',
-    type: 'milestone',
-    category: 'fitness',
-    title: 'Strength Training Milestone',
-    message: 'You\'ve increased your bench press by 20lbs this month! Your dedication is paying off.',
-    timestamp: '2025-01-12T18:30:00Z',
-    isRead: true,
-    actionUrl: '/fitness/progress'
-  },
-  {
-    id: '8',
-    type: 'course',
-    category: 'language',
-    title: 'Mandarin Course Recommendation',
-    message: 'Based on your learning style, we recommend "Business Mandarin for Professionals".',
-    timestamp: '2025-01-12T11:00:00Z',
-    isRead: true,
-    actionUrl: '/courses/business-mandarin'
+    priority: 'low',
+    actionUrl: '/ai-assistant'
   }
 ];
 
 const notificationCategories = [
-  { id: 'all', name: 'All', count: 8 },
-  { id: 'coding', name: 'Coding', count: 2 },
-  { id: 'fitness', name: 'Fitness', count: 2 },
-  { id: 'language', name: 'Language', count: 3 },
-  { id: 'general', name: 'General', count: 1 }
+  { id: 'all', name: 'All', count: 6, icon: <Bell size={16} color="#6B7280" /> },
+  { id: 'courses', name: 'Courses', count: 1, icon: <BookOpen size={16} color="#3B82F6" /> },
+  { id: 'coaching', name: 'Coaching', count: 1, icon: <Calendar size={16} color="#8B5CF6" /> },
+  { id: 'resources', name: 'Resources', count: 1, icon: <Target size={16} color="#10B981" /> },
+  { id: 'ai', name: 'AI Messages', count: 1, icon: <Sparkles size={16} color="#F59E0B" /> },
+  { id: 'general', name: 'General', count: 2, icon: <Megaphone size={16} color="#EF4444" /> }
 ];
 
 export default function NotificationsScreen() {
@@ -154,24 +146,41 @@ export default function NotificationsScreen() {
   // Count unread notifications
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  // AI-generated summary
+  const aiSummary = "You have 3 high-priority items: an upcoming coaching session, an AI learning recommendation, and a new resource. Your learning streak is at 6 days - one more to unlock a badge!";
+
   const getNotificationIcon = (type: string, category: string) => {
     const iconProps = { size: 24, color: colors.primary[500] };
     
-    if (category === 'coding') return <Code {...iconProps} />;
-    if (category === 'fitness') return <Dumbbell {...iconProps} />;
-    if (category === 'language') return <Globe {...iconProps} />;
-    
     switch (type) {
+      case 'ai':
+        return <Sparkles {...iconProps} color={colors.warning[500]} />;
+      case 'coaching':
+        return <Calendar {...iconProps} color={colors.accent[500]} />;
       case 'milestone':
-        return <Trophy {...iconProps} color={colors.warning[500]} />;
+        return <Trophy {...iconProps} color={colors.success[500]} />;
       case 'challenge':
-        return <Target {...iconProps} color={colors.accent[500]} />;
+        return <Target {...iconProps} color={colors.primary[500]} />;
       case 'course':
         return <BookOpen {...iconProps} color={colors.primary[500]} />;
+      case 'resource':
+        return <Target {...iconProps} color={colors.success[500]} />;
       case 'announcement':
         return <Megaphone {...iconProps} color={colors.secondary[500]} />;
       default:
         return <Bell {...iconProps} />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return colors.error[500];
+      case 'medium':
+        return colors.warning[500];
+      case 'low':
+      default:
+        return colors.neutral[400];
     }
   };
 
@@ -208,8 +217,8 @@ export default function NotificationsScreen() {
     }
     
     if (notification.actionUrl) {
-      // In a real app, navigate to the specific URL
       console.log('Navigate to:', notification.actionUrl);
+      router.back();
     }
   };
 
@@ -256,6 +265,24 @@ export default function NotificationsScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* AI Summary */}
+        <Animated.View 
+          entering={FadeInUp.delay(100).duration(400)}
+          style={[styles.aiSummaryCard, { backgroundColor: colors.primary[50] }]}
+        >
+          <View style={styles.aiSummaryHeader}>
+            <View style={[styles.aiSummaryIcon, { backgroundColor: colors.primary[500] }]}>
+              <Sparkles size={20} color="white" />
+            </View>
+            <Text style={[styles.aiSummaryTitle, { color: colors.primary[700] }]}>
+              AI Summary
+            </Text>
+          </View>
+          <Text style={[styles.aiSummaryText, { color: colors.primary[600] }]}>
+            {aiSummary}
+          </Text>
+        </Animated.View>
+
         {/* Settings Panel */}
         {showSettings && (
           <Animated.View 
@@ -293,7 +320,7 @@ export default function NotificationsScreen() {
 
         {/* Category Filter */}
         <Animated.View 
-          entering={FadeInUp.delay(100).duration(400)}
+          entering={FadeInUp.delay(200).duration(400)}
           style={styles.categoryContainer}
         >
           <ScrollView 
@@ -314,6 +341,7 @@ export default function NotificationsScreen() {
                 ]}
                 onPress={() => setSelectedCategory(category.id)}
               >
+                {category.icon}
                 <Text
                   style={[
                     styles.categoryChipText,
@@ -352,7 +380,7 @@ export default function NotificationsScreen() {
         >
           {filteredNotifications.length === 0 ? (
             <Animated.View 
-              entering={FadeInUp.delay(200).duration(400)}
+              entering={FadeInUp.delay(300).duration(400)}
               style={styles.emptyState}
             >
               <BellOff size={48} color={colors.neutral[400]} />
@@ -367,7 +395,7 @@ export default function NotificationsScreen() {
             filteredNotifications.map((notification, index) => (
               <Animated.View
                 key={notification.id}
-                entering={FadeInRight.delay(index * 50).duration(400)}
+                entering={FadeInRight.delay(300 + index * 50).duration(400)}
               >
                 <TouchableOpacity
                   style={[
@@ -402,9 +430,15 @@ export default function NotificationsScreen() {
                         >
                           {notification.title}
                         </Text>
-                        {!notification.isRead && (
-                          <View style={[styles.unreadDot, { backgroundColor: colors.primary[500] }]} />
-                        )}
+                        <View style={styles.notificationMeta}>
+                          <View style={[
+                            styles.priorityDot, 
+                            { backgroundColor: getPriorityColor(notification.priority) }
+                          ]} />
+                          {!notification.isRead && (
+                            <View style={[styles.unreadDot, { backgroundColor: colors.primary[500] }]} />
+                          )}
+                        </View>
                       </View>
                       
                       <Text 
@@ -417,7 +451,7 @@ export default function NotificationsScreen() {
                         {notification.message}
                       </Text>
                       
-                      <View style={styles.notificationMeta}>
+                      <View style={styles.notificationFooter}>
                         <Clock size={12} color={colors.neutral[400]} />
                         <Text style={[styles.notificationTime, { color: colors.neutral[500] }]}>
                           {formatTimestamp(notification.timestamp)}
@@ -490,6 +524,33 @@ const styles = StyleSheet.create({
   settingsButton: {
     padding: 8,
   },
+  aiSummaryCard: {
+    marginHorizontal: 16,
+    marginVertical: 12,
+    borderRadius: 12,
+    padding: 16,
+  },
+  aiSummaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  aiSummaryIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  aiSummaryTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  aiSummaryText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
   settingsPanel: {
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -535,6 +596,7 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontSize: 14,
+    marginLeft: 6,
     marginRight: 6,
   },
   categoryCount: {
@@ -599,6 +661,7 @@ const styles = StyleSheet.create({
   notificationTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 4,
   },
   notificationTitle: {
@@ -606,18 +669,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
+  notificationMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  priorityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginLeft: 8,
   },
   notificationMessage: {
     fontSize: 14,
     lineHeight: 20,
     marginBottom: 8,
   },
-  notificationMeta: {
+  notificationFooter: {
     flexDirection: 'row',
     alignItems: 'center',
   },
