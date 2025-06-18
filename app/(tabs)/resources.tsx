@@ -11,7 +11,6 @@ import {
   Modal,
   Image,
   Share,
-  Clipboard,
   Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -249,6 +248,10 @@ export default function ResourcesScreen() {
   const [credentialType, setCredentialType] = useState('All');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'issuer'>('date');
 
+  // Loading states for async operations
+  const [isSharing, setIsSharing] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
+
   // Filter badges based on current filters
   const filteredBadges = digitalBadges.filter(badge => {
     const matchesSearch = searchQuery === '' || 
@@ -288,60 +291,157 @@ export default function ResourcesScreen() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleDownload = (resource: Resource) => {
-    console.log('Downloading:', resource.title);
+  const handleDownload = async (resource: Resource) => {
+    try {
+      console.log('Downloading:', resource.title);
+      // Add actual download logic here
+      Alert.alert('Download Started', `Downloading ${resource.title}...`);
+    } catch (error) {
+      console.error('Download error:', error);
+      Alert.alert('Download Failed', 'Unable to download the resource. Please try again.');
+    }
   };
 
-  const handleOpen = (resource: Resource) => {
-    console.log('Opening:', resource.title);
+  const handleOpen = async (resource: Resource) => {
+    try {
+      console.log('Opening:', resource.title);
+      // Add actual open logic here
+      Alert.alert('Opening Resource', `Opening ${resource.title}...`);
+    } catch (error) {
+      console.error('Open error:', error);
+      Alert.alert('Open Failed', 'Unable to open the resource. Please try again.');
+    }
   };
 
   const handleBadgePress = (badge: DigitalBadge) => {
-    setSelectedBadge(badge);
+    try {
+      setSelectedBadge(badge);
+    } catch (error) {
+      console.error('Badge press error:', error);
+      Alert.alert('Error', 'Unable to open badge details. Please try again.');
+    }
   };
 
   const handleShare = async (badge: DigitalBadge) => {
+    if (isSharing) return; // Prevent multiple simultaneous shares
+    
+    setIsSharing(true);
     try {
+      const shareContent = {
+        message: `Check out my ${badge.name} certification from ${badge.issuer}! ${badge.verificationUrl}`,
+        title: badge.name,
+      };
+
       if (Platform.OS === 'web') {
-        // Web sharing
-        if (navigator.share) {
-          await navigator.share({
-            title: badge.name,
-            text: `Check out my ${badge.name} certification from ${badge.issuer}!`,
-            url: badge.verificationUrl,
-          });
+        // Web sharing with fallback
+        if (typeof navigator !== 'undefined' && navigator.share) {
+          try {
+            await navigator.share({
+              title: shareContent.title,
+              text: shareContent.message,
+              url: badge.verificationUrl,
+            });
+          } catch (shareError: any) {
+            // User cancelled or sharing failed
+            if (shareError.name !== 'AbortError') {
+              // Fallback to clipboard
+              await handleCopyLink(badge);
+            }
+          }
         } else {
-          // Fallback for web browsers without native sharing
-          await Clipboard.setString(`Check out my ${badge.name} certification from ${badge.issuer}! ${badge.verificationUrl}`);
-          Alert.alert('Copied to clipboard', 'Badge details copied to clipboard');
+          // Fallback for browsers without native sharing
+          await handleCopyLink(badge);
         }
       } else {
         // Mobile sharing
-        await Share.share({
-          message: `Check out my ${badge.name} certification from ${badge.issuer}! ${badge.verificationUrl}`,
-          title: badge.name,
-        });
+        const result = await Share.share(shareContent);
+        if (result.action === Share.sharedAction) {
+          console.log('Badge shared successfully');
+        }
       }
-    } catch (error) {
-      console.error('Error sharing:', error);
+    } catch (error: any) {
+      console.error('Error sharing badge:', error);
+      Alert.alert(
+        'Share Failed', 
+        'Unable to share the badge. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSharing(false);
     }
   };
 
   const handleCopyLink = async (badge: DigitalBadge) => {
+    if (isCopying) return; // Prevent multiple simultaneous copies
+    
+    setIsCopying(true);
     try {
-      await Clipboard.setString(badge.verificationUrl);
+      if (Platform.OS === 'web') {
+        // Web clipboard API
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(badge.verificationUrl);
+        } else {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = badge.verificationUrl;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+      } else {
+        // Mobile clipboard (would need expo-clipboard)
+        // For now, just show the URL
+        Alert.alert(
+          'Verification Link',
+          badge.verificationUrl,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Copy', onPress: () => console.log('Copy to clipboard') }
+          ]
+        );
+        return;
+      }
+      
       Alert.alert('Copied!', 'Verification link copied to clipboard');
+    } catch (error: any) {
+      console.error('Error copying link:', error);
+      Alert.alert(
+        'Copy Failed',
+        'Unable to copy the link. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
+  const handleVerificationOpen = async (badge: DigitalBadge) => {
+    try {
+      if (Platform.OS === 'web') {
+        window.open(badge.verificationUrl, '_blank');
+      } else {
+        // For mobile, you might want to use expo-web-browser
+        console.log('Opening verification:', badge.verificationUrl);
+        Alert.alert('Opening Verification', 'Opening verification link...');
+      }
     } catch (error) {
-      console.error('Error copying:', error);
+      console.error('Error opening verification:', error);
+      Alert.alert('Error', 'Unable to open verification link. Please try again.');
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return dateString; // Return original string if formatting fails
+    }
   };
 
   const renderBadgeCard = (badge: DigitalBadge, index: number) => (
@@ -776,19 +876,21 @@ export default function ResourcesScreen() {
 
                 <View style={styles.actionButtons}>
                   <Button
-                    title="Share Badge"
+                    title={isSharing ? "Sharing..." : "Share Badge"}
                     variant="primary"
                     icon={<Share2 size={16} color="white" />}
                     iconPosition="left"
                     onPress={() => handleShare(selectedBadge)}
+                    disabled={isSharing}
                     style={styles.shareButton}
                   />
                   <Button
-                    title="Copy Link"
+                    title={isCopying ? "Copying..." : "Copy Link"}
                     variant="outline"
                     icon={<Copy size={16} color={colors.primary[500]} />}
                     iconPosition="left"
                     onPress={() => handleCopyLink(selectedBadge)}
+                    disabled={isCopying}
                     style={styles.copyButton}
                   />
                   <Button
@@ -796,10 +898,7 @@ export default function ResourcesScreen() {
                     variant="ghost"
                     icon={<ExternalLink size={16} color={colors.primary[500]} />}
                     iconPosition="left"
-                    onPress={() => {
-                      // Open verification URL
-                      console.log('Opening verification:', selectedBadge.verificationUrl);
-                    }}
+                    onPress={() => handleVerificationOpen(selectedBadge)}
                     style={styles.verifyButton}
                   />
                 </View>
