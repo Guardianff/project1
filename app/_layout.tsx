@@ -19,6 +19,7 @@ export default function RootLayout() {
             <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
             <Stack.Screen name="categories" options={{ headerShown: false }} />
             <Stack.Screen name="categories/[id]" options={{ headerShown: false }} />
+            <Stack.Screen name="profile-integration" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
           </Stack>
           <StatusBar style="auto" />

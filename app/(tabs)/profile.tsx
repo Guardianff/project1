@@ -11,6 +11,7 @@ import {
   Switch
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { 
   Settings, 
   Award, 
@@ -25,12 +26,18 @@ import {
   CircleHelp as HelpCircle,
   FileText,
   LogOut,
-  Moon
+  Moon,
+  Github,
+  Linkedin,
+  Link,
+  Shield,
+  Sync
 } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { achievements, recentActivities, learningPaths } from '@/data/mockData';
+import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
 interface SettingItemProps {
   icon: React.ReactNode;
@@ -62,25 +69,46 @@ function SettingItem({ icon, title, subtitle, onPress, rightElement }: SettingIt
 }
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isDarkMode, toggleTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const [notifications, setNotifications] = useState(true);
 
+  // Mock integration status
+  const [integrationStatus, setIntegrationStatus] = useState({
+    github: { connected: true, lastSync: '2025-01-15T10:30:00Z' },
+    linkedin: { connected: true, lastSync: '2025-01-15T09:15:00Z' },
+  });
+
+  const handleProfileIntegration = () => {
+    router.push('/profile-integration');
+  };
+
+  const formatLastSync = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    return date.toLocaleDateString();
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInUp.duration(400)} style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
-        </View>
+        </Animated.View>
         
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
           {/* Profile Card */}
-          <View style={[styles.profileCard, { backgroundColor: colors.background }]}>
+          <Animated.View entering={FadeInUp.delay(100).duration(500)} style={[styles.profileCard, { backgroundColor: colors.background }]}>
             <Image
               source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
               style={styles.avatar}
@@ -101,10 +129,88 @@ export default function ProfileScreen() {
               onPress={() => {}}
               style={styles.editButton}
             />
-          </View>
+          </Animated.View>
+
+          {/* Profile Integration Status */}
+          <Animated.View entering={FadeInUp.delay(200).duration(500)} style={styles.integrationSection}>
+            <View style={styles.integrationHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile Integration</Text>
+              <TouchableOpacity onPress={handleProfileIntegration}>
+                <Text style={[styles.manageText, { color: colors.primary[500] }]}>Manage</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={[styles.integrationCard, { backgroundColor: colors.background }]}>
+              <View style={styles.integrationPlatforms}>
+                <View style={styles.platformStatus}>
+                  <View style={[styles.platformIcon, { backgroundColor: '#24292e' }]}>
+                    <Github size={20} color="white" />
+                  </View>
+                  <View style={styles.platformInfo}>
+                    <Text style={[styles.platformName, { color: colors.text }]}>GitHub</Text>
+                    <Text style={[styles.platformStatus, { color: integrationStatus.github.connected ? colors.success[500] : colors.error[500] }]}>
+                      {integrationStatus.github.connected ? 'Connected' : 'Not connected'}
+                    </Text>
+                    {integrationStatus.github.connected && (
+                      <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
+                        Last sync: {formatLastSync(integrationStatus.github.lastSync)}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.platformActions}>
+                    <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
+                      <Sync size={16} color={colors.primary[500]} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.platformStatus}>
+                  <View style={[styles.platformIcon, { backgroundColor: '#0077b5' }]}>
+                    <Linkedin size={20} color="white" />
+                  </View>
+                  <View style={styles.platformInfo}>
+                    <Text style={[styles.platformName, { color: colors.text }]}>LinkedIn</Text>
+                    <Text style={[styles.platformStatus, { color: integrationStatus.linkedin.connected ? colors.success[500] : colors.error[500] }]}>
+                      {integrationStatus.linkedin.connected ? 'Connected' : 'Not connected'}
+                    </Text>
+                    {integrationStatus.linkedin.connected && (
+                      <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
+                        Last sync: {formatLastSync(integrationStatus.linkedin.lastSync)}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.platformActions}>
+                    <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
+                      <Sync size={16} color={colors.primary[500]} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.integrationCTA, { backgroundColor: colors.primary[50] }]}
+                onPress={handleProfileIntegration}
+              >
+                <View style={styles.integrationCTAContent}>
+                  <View style={[styles.integrationCTAIcon, { backgroundColor: colors.primary[500] }]}>
+                    <Link size={20} color="white" />
+                  </View>
+                  <View style={styles.integrationCTAText}>
+                    <Text style={[styles.integrationCTATitle, { color: colors.primary[700] }]}>
+                      Enhance Your Profile
+                    </Text>
+                    <Text style={[styles.integrationCTADescription, { color: colors.primary[600] }]}>
+                      Connect more platforms to showcase your complete professional journey
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={20} color={colors.primary[500]} />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
           
           {/* Stats Section */}
-          <View style={[styles.statsContainer, { backgroundColor: colors.background }]}>
+          <Animated.View entering={FadeInUp.delay(300).duration(500)} style={[styles.statsContainer, { backgroundColor: colors.background }]}>
             <View style={styles.statItem}>
               <Text style={[styles.statValue, { color: colors.text }]}>7</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Courses</Text>
@@ -119,10 +225,10 @@ export default function ProfileScreen() {
               <Text style={[styles.statValue, { color: colors.text }]}>3</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Certificates</Text>
             </View>
-          </View>
+          </Animated.View>
           
           {/* Learning Progress */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(400).duration(500)} style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Learning Paths</Text>
               <TouchableOpacity>
@@ -130,8 +236,12 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
             
-            {learningPaths.map((path) => (
-              <TouchableOpacity key={path.id} style={[styles.learningPathCard, { backgroundColor: colors.background }]}>
+            {learningPaths.map((path, index) => (
+              <Animated.View
+                key={path.id}
+                entering={FadeInRight.delay(500 + index * 100).duration(500)}
+                style={[styles.learningPathCard, { backgroundColor: colors.background }]}
+              >
                 <View style={styles.pathInfo}>
                   <Text style={[styles.pathTitle, { color: colors.text }]}>{path.title}</Text>
                   <Text style={[styles.pathDescription, { color: colors.textSecondary }]} numberOfLines={2}>
@@ -153,12 +263,12 @@ export default function ProfileScreen() {
                   </View>
                   <Text style={[styles.progressText, { color: colors.textSecondary }]}>{path.progress}%</Text>
                 </View>
-              </TouchableOpacity>
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
           
           {/* Achievements */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(600).duration(500)} style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Achievements</Text>
               <TouchableOpacity>
@@ -167,8 +277,12 @@ export default function ProfileScreen() {
             </View>
             
             <View style={styles.achievementsContainer}>
-              {achievements.map((achievement) => (
-                <TouchableOpacity key={achievement.id} style={[styles.achievementCard, { backgroundColor: colors.background }]}>
+              {achievements.map((achievement, index) => (
+                <Animated.View
+                  key={achievement.id}
+                  entering={FadeInUp.delay(700 + index * 100).duration(500)}
+                  style={[styles.achievementCard, { backgroundColor: colors.background }]}
+                >
                   <View style={[
                     styles.achievementIconContainer,
                     { backgroundColor: achievement.completed ? colors.success[500] : colors.neutral[200] }
@@ -187,19 +301,23 @@ export default function ProfileScreen() {
                       ]} 
                     />
                   </View>
-                </TouchableOpacity>
+                </Animated.View>
               ))}
             </View>
-          </View>
+          </Animated.View>
           
           {/* Recent Activity */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(800).duration(500)} style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
             </View>
             
-            {recentActivities.map((activity) => (
-              <View key={activity.id} style={[styles.activityItem, { borderBottomColor: colors.neutral[100] }]}>
+            {recentActivities.map((activity, index) => (
+              <Animated.View
+                key={activity.id}
+                entering={FadeInRight.delay(900 + index * 100).duration(500)}
+                style={[styles.activityItem, { borderBottomColor: colors.neutral[100] }]}
+              >
                 <View 
                   style={[
                     styles.activityIconContainer,
@@ -218,27 +336,29 @@ export default function ProfileScreen() {
                   <Text style={[styles.activityDescription, { color: colors.textSecondary }]}>{activity.description}</Text>
                   <Text style={[styles.activityTime, { color: colors.neutral[500] }]}>{activity.time}</Text>
                 </View>
-              </View>
+              </Animated.View>
             ))}
-          </View>
+          </Animated.View>
           
           {/* Analytics Section */}
-          <TouchableOpacity style={[styles.analyticsCard, { backgroundColor: colors.neutral[50] }]}>
-            <View style={styles.analyticsHeader}>
-              <BarChart size={20} color={colors.primary[500]} />
-              <Text style={[styles.analyticsTitle, { color: colors.text }]}>Learning Analytics</Text>
-            </View>
-            <Text style={[styles.analyticsDescription, { color: colors.textSecondary }]}>
-              Track your progress and get insights into your learning habits
-            </Text>
-            <View style={styles.analyticsAction}>
-              <Text style={[styles.analyticsActionText, { color: colors.primary[500] }]}>View Analytics</Text>
-              <ChevronRight size={16} color={colors.primary[500]} />
-            </View>
-          </TouchableOpacity>
+          <Animated.View entering={FadeInUp.delay(1000).duration(500)}>
+            <TouchableOpacity style={[styles.analyticsCard, { backgroundColor: colors.neutral[50] }]}>
+              <View style={styles.analyticsHeader}>
+                <BarChart size={20} color={colors.primary[500]} />
+                <Text style={[styles.analyticsTitle, { color: colors.text }]}>Learning Analytics</Text>
+              </View>
+              <Text style={[styles.analyticsDescription, { color: colors.textSecondary }]}>
+                Track your progress and get insights into your learning habits
+              </Text>
+              <View style={styles.analyticsAction}>
+                <Text style={[styles.analyticsActionText, { color: colors.primary[500] }]}>View Analytics</Text>
+                <ChevronRight size={16} color={colors.primary[500]} />
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
 
           {/* Settings Section */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(1100).duration(500)} style={styles.sectionContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
 
             <SettingItem
@@ -276,10 +396,10 @@ export default function ProfileScreen() {
               subtitle="Premium Plan - $9.99/month"
               onPress={() => {}}
             />
-          </View>
+          </Animated.View>
 
           {/* Preferences Section */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(1200).duration(500)} style={styles.sectionContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
 
             <SettingItem
@@ -296,10 +416,10 @@ export default function ProfileScreen() {
                 />
               }
             />
-          </View>
+          </Animated.View>
 
           {/* Support Section */}
-          <View style={styles.sectionContainer}>
+          <Animated.View entering={FadeInUp.delay(1300).duration(500)} style={styles.sectionContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
 
             <SettingItem
@@ -320,21 +440,23 @@ export default function ProfileScreen() {
               title="Privacy Policy"
               onPress={() => {}}
             />
-          </View>
+          </Animated.View>
 
           {/* Logout Button */}
-          <TouchableOpacity 
-            style={[styles.logoutButton, { backgroundColor: colors.error[50] }]} 
-            onPress={() => {}}
-          >
-            <LogOut size={22} color={colors.error[500]} />
-            <Text style={[styles.logoutText, { color: colors.error[600] }]}>Log Out</Text>
-          </TouchableOpacity>
+          <Animated.View entering={FadeInUp.delay(1400).duration(500)}>
+            <TouchableOpacity 
+              style={[styles.logoutButton, { backgroundColor: colors.error[50] }]} 
+              onPress={() => {}}
+            >
+              <LogOut size={22} color={colors.error[500]} />
+              <Text style={[styles.logoutText, { color: colors.error[600] }]}>Log Out</Text>
+            </TouchableOpacity>
+          </Animated.View>
 
           {/* Version Info */}
-          <View style={styles.versionContainer}>
+          <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
-          </View>
+          </Animated.View>
           
           {/* "Built on Bolt" badge */}
           <View style={styles.boltBadgeContainer}>
@@ -407,6 +529,96 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginLeft: 8,
+  },
+  integrationSection: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  integrationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  manageText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  integrationCard: {
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  integrationPlatforms: {
+    marginBottom: 16,
+  },
+  platformStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  platformIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  platformInfo: {
+    flex: 1,
+  },
+  platformName: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  lastSyncText: {
+    fontSize: 12,
+  },
+  platformActions: {
+    marginLeft: 8,
+  },
+  syncButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  integrationCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+  },
+  integrationCTAContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  integrationCTAIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  integrationCTAText: {
+    flex: 1,
+  },
+  integrationCTATitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  integrationCTADescription: {
+    fontSize: 12,
   },
   statsContainer: {
     flexDirection: 'row',
