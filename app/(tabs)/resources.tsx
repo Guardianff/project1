@@ -7,19 +7,46 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
-  TextInput,
-  Modal,
   Image,
   Share,
-  Alert
+  Alert,
+  Dimensions
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Download, Award, BookOpen, FileText, Code, Briefcase, Palette, ExternalLink, Filter, Grid3x3, List, Calendar, Building, Share2, Copy, CircleCheck as CheckCircle, X, Eye, Users, Star, Clock, Shield } from 'lucide-react-native';
+import { 
+  Search, 
+  Download, 
+  Award, 
+  BookOpen, 
+  FileText, 
+  Code, 
+  Briefcase, 
+  Palette, 
+  ExternalLink, 
+  Filter, 
+  Grid3x3, 
+  List, 
+  Calendar, 
+  Building, 
+  Share2, 
+  Copy, 
+  CircleCheck as CheckCircle, 
+  X, 
+  Eye, 
+  Users, 
+  Star, 
+  Clock, 
+  Shield,
+  Sparkles,
+  TrendingUp,
+  Zap,
+  Target
+} from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
 
 interface DigitalBadge {
   id: string;
@@ -50,6 +77,8 @@ interface Resource {
   downloadUrl: string;
   icon: React.ReactNode;
   color: string;
+  downloads?: number;
+  rating?: number;
 }
 
 const digitalBadges: DigitalBadge[] = [
@@ -103,198 +132,132 @@ const digitalBadges: DigitalBadge[] = [
     shareCount: 28,
     viewCount: 156,
     tags: ['JavaScript', 'Programming', 'Web Development', 'ES6']
-  },
-  {
-    id: 'badge4',
-    name: 'Digital Marketing Specialist',
-    description: 'Demonstrated expertise in digital marketing strategies, SEO, social media marketing, and analytics.',
-    issuer: 'HubSpot Academy',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/905163/pexels-photo-905163.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-09-12',
-    verificationUrl: 'https://verify.hubspot.com/badge/digital-marketing',
-    isVerified: true,
-    category: 'Marketing',
-    skillLevel: 'advanced',
-    credentialType: 'certification',
-    shareCount: 41,
-    viewCount: 203,
-    tags: ['Digital Marketing', 'SEO', 'Social Media', 'Analytics']
-  },
-  {
-    id: 'badge5',
-    name: 'Project Management Professional',
-    description: 'Certified in project management methodologies including Agile, Scrum, and traditional project management approaches.',
-    issuer: 'Project Management Institute',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-08-30',
-    verificationUrl: 'https://verify.pmi.org/badge/pmp-professional',
-    isVerified: true,
-    category: 'Business',
-    skillLevel: 'expert',
-    credentialType: 'certification',
-    shareCount: 67,
-    viewCount: 312,
-    tags: ['Project Management', 'Agile', 'Scrum', 'Leadership']
-  },
-  {
-    id: 'badge6',
-    name: 'Data Analysis with Python',
-    description: 'Completed advanced data analysis course using Python, pandas, and visualization libraries.',
-    issuer: 'Coursera - IBM',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/669615/pexels-photo-669615.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-07-18',
-    verificationUrl: 'https://verify.coursera.org/badge/data-analysis-python',
-    isVerified: true,
-    category: 'Data Science',
-    skillLevel: 'intermediate',
-    credentialType: 'course_completion',
-    shareCount: 23,
-    viewCount: 134,
-    tags: ['Python', 'Data Analysis', 'Pandas', 'Visualization']
   }
 ];
 
 const resources: Resource[] = [
   {
     id: '1',
-    title: 'Figma Design System',
-    description: 'Complete design system template',
+    title: 'Advanced Design System Kit',
+    description: 'Complete design system with 200+ components',
     type: 'tool',
     category: 'Design',
     fileType: 'Figma File',
     fileSize: '15.2 MB',
     downloadUrl: '#',
-    icon: <Palette size={20} color="#22C55E" />,
-    color: '#22C55E'
+    icon: <Palette size={24} color="white" />,
+    color: '#8B5CF6',
+    downloads: 1250,
+    rating: 4.9
   },
   {
     id: '2',
-    title: 'Code Snippet Manager',
-    description: 'Organize and share code snippets',
+    title: 'React Native Boilerplate',
+    description: 'Production-ready React Native starter template',
     type: 'tool',
     category: 'Development',
-    fileType: 'Web App',
+    fileType: 'GitHub Repo',
     fileSize: 'Online',
     downloadUrl: '#',
-    icon: <Code size={20} color="#3B82F6" />,
-    color: '#3B82F6'
+    icon: <Code size={24} color="white" />,
+    color: '#06B6D4',
+    downloads: 2100,
+    rating: 4.8
   },
   {
     id: '3',
-    title: 'Getting Started with React',
-    description: 'Comprehensive React learning guide',
+    title: 'Mobile App Marketing Guide',
+    description: 'Complete guide to app store optimization',
     type: 'guide',
-    category: 'Development',
+    category: 'Marketing',
     fileType: 'PDF',
     fileSize: '8.7 MB',
     downloadUrl: '#',
-    icon: <BookOpen size={20} color="#22C55E" />,
-    color: '#22C55E'
+    icon: <TrendingUp size={24} color="white" />,
+    color: '#F59E0B',
+    downloads: 890,
+    rating: 4.7
   },
   {
     id: '4',
-    title: 'UX Research Methods',
-    description: 'Guide to user research techniques',
-    type: 'guide',
-    category: 'Research',
-    fileType: 'PDF',
-    fileSize: '5.1 MB',
-    downloadUrl: '#',
-    icon: <FileText size={20} color="#06B6D4" />,
-    color: '#06B6D4'
-  },
-  {
-    id: '5',
-    title: 'Project Proposal Template',
-    description: 'Professional project proposal format',
+    title: 'User Research Toolkit',
+    description: 'Templates and methods for user research',
     type: 'template',
-    category: 'Business',
-    fileType: 'DOCX',
-    fileSize: '1.2 MB',
+    category: 'Research',
+    fileType: 'Notion Template',
+    fileSize: 'Online',
     downloadUrl: '#',
-    icon: <Briefcase size={20} color="#8B5CF6" />,
-    color: '#8B5CF6'
+    icon: <Target size={24} color="white" />,
+    color: '#EF4444',
+    downloads: 650,
+    rating: 4.6
   }
 ];
 
-const resourceCategories = [
-  { id: 'saved', name: 'Saved', active: false },
-  { id: 'tools', name: 'Tools', active: false },
-  { id: 'guides', name: 'Guides', active: true },
-  { id: 'templates', name: 'Templates', active: false },
-  { id: 'badges', name: 'Badges', active: false },
+const featuredResources = [
+  {
+    id: 'featured1',
+    title: 'Premium Design Assets',
+    subtitle: 'Exclusive collection of UI components',
+    image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+    gradient: ['#8B5CF6', '#EC4899'],
+    icon: <Sparkles size={32} color="white" />
+  },
+  {
+    id: 'featured2',
+    title: 'Developer Tools Suite',
+    subtitle: 'Essential tools for modern development',
+    image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+    gradient: ['#06B6D4', '#3B82F6'],
+    icon: <Zap size={32} color="white" />
+  }
 ];
-
-const badgeCategories = ['All', 'Development', 'Design', 'Marketing', 'Business', 'Data Science'];
-const skillLevels = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
-const credentialTypes = ['All', 'Certification', 'Badge', 'Course Completion', 'Skill Assessment'];
 
 export default function ResourcesScreen() {
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('guides');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [selectedBadge, setSelectedBadge] = useState<DigitalBadge | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
+  const screenWidth = Dimensions.get('window').width;
   
-  // Badge filters
-  const [badgeCategory, setBadgeCategory] = useState('All');
-  const [skillLevel, setSkillLevel] = useState('All');
-  const [credentialType, setCredentialType] = useState('All');
-  const [sortBy, setSortBy] = useState<'date' | 'name' | 'issuer'>('date');
-
   // Loading states for async operations
   const [isSharing, setIsSharing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
 
-  // Filter badges based on current filters
-  const filteredBadges = digitalBadges.filter(badge => {
-    const matchesSearch = searchQuery === '' || 
-      badge.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      badge.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      badge.issuer.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = badgeCategory === 'All' || badge.category === badgeCategory;
-    const matchesSkillLevel = skillLevel === 'All' || badge.skillLevel === skillLevel.toLowerCase();
-    const matchesCredentialType = credentialType === 'All' || 
-      badge.credentialType === credentialType.toLowerCase().replace(' ', '_');
-    
-    return matchesSearch && matchesCategory && matchesSkillLevel && matchesCredentialType;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'name':
-        return a.name.localeCompare(b.name);
-      case 'issuer':
-        return a.issuer.localeCompare(b.issuer);
-      case 'date':
-      default:
-        return new Date(b.dateEarned).getTime() - new Date(a.dateEarned).getTime();
-    }
-  });
+  const categories = [
+    { id: 'all', name: 'All', icon: <Grid3x3 size={18} color={colors.primary[500]} /> },
+    { id: 'tools', name: 'Tools', icon: <Code size={18} color={colors.primary[500]} /> },
+    { id: 'guides', name: 'Guides', icon: <BookOpen size={18} color={colors.primary[500]} /> },
+    { id: 'templates', name: 'Templates', icon: <FileText size={18} color={colors.primary[500]} /> },
+    { id: 'badges', name: 'Badges', icon: <Award size={18} color={colors.primary[500]} /> },
+  ];
 
-  // Filter resources based on current filters
   const filteredResources = resources.filter(resource => {
     const matchesSearch = searchQuery === '' || 
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = activeCategory === 'guides' ? true : 
+    const matchesCategory = activeCategory === 'all' || 
       (activeCategory === 'tools' && resource.type === 'tool') ||
-      (activeCategory === 'templates' && resource.type === 'template') ||
-      (activeCategory === 'saved' && false); // No saved items for demo
+      (activeCategory === 'guides' && resource.type === 'guide') ||
+      (activeCategory === 'templates' && resource.type === 'template');
     
     return matchesSearch && matchesCategory;
+  });
+
+  const filteredBadges = digitalBadges.filter(badge => {
+    return searchQuery === '' || 
+      badge.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      badge.description.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const handleDownload = async (resource: Resource) => {
     try {
       console.log('Downloading:', resource.title);
-      // Add actual download logic here
       Alert.alert('Download Started', `Downloading ${resource.title}...`);
     } catch (error) {
       console.error('Download error:', error);
@@ -302,28 +265,8 @@ export default function ResourcesScreen() {
     }
   };
 
-  const handleOpen = async (resource: Resource) => {
-    try {
-      console.log('Opening:', resource.title);
-      // Add actual open logic here
-      Alert.alert('Opening Resource', `Opening ${resource.title}...`);
-    } catch (error) {
-      console.error('Open error:', error);
-      Alert.alert('Open Failed', 'Unable to open the resource. Please try again.');
-    }
-  };
-
-  const handleBadgePress = (badge: DigitalBadge) => {
-    try {
-      setSelectedBadge(badge);
-    } catch (error) {
-      console.error('Badge press error:', error);
-      Alert.alert('Error', 'Unable to open badge details. Please try again.');
-    }
-  };
-
   const handleShare = async (badge: DigitalBadge) => {
-    if (isSharing) return; // Prevent multiple simultaneous shares
+    if (isSharing) return;
     
     setIsSharing(true);
     try {
@@ -333,55 +276,35 @@ export default function ResourcesScreen() {
       };
 
       if (Platform.OS === 'web') {
-        // Web sharing with fallback
         if (typeof navigator !== 'undefined' && navigator.share) {
-          try {
-            await navigator.share({
-              title: shareContent.title,
-              text: shareContent.message,
-              url: badge.verificationUrl,
-            });
-          } catch (shareError: any) {
-            // User cancelled or sharing failed
-            if (shareError.name !== 'AbortError') {
-              // Fallback to clipboard
-              await handleCopyLink(badge);
-            }
-          }
+          await navigator.share({
+            title: shareContent.title,
+            text: shareContent.message,
+            url: badge.verificationUrl,
+          });
         } else {
-          // Fallback for browsers without native sharing
           await handleCopyLink(badge);
         }
       } else {
-        // Mobile sharing
-        const result = await Share.share(shareContent);
-        if (result.action === Share.sharedAction) {
-          console.log('Badge shared successfully');
-        }
+        await Share.share(shareContent);
       }
     } catch (error: any) {
       console.error('Error sharing badge:', error);
-      Alert.alert(
-        'Share Failed', 
-        'Unable to share the badge. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Share Failed', 'Unable to share the badge. Please try again.');
     } finally {
       setIsSharing(false);
     }
   };
 
   const handleCopyLink = async (badge: DigitalBadge) => {
-    if (isCopying) return; // Prevent multiple simultaneous copies
+    if (isCopying) return;
     
     setIsCopying(true);
     try {
       if (Platform.OS === 'web') {
-        // Web clipboard API
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
           await navigator.clipboard.writeText(badge.verificationUrl);
         } else {
-          // Fallback for older browsers
           const textArea = document.createElement('textarea');
           textArea.value = badge.verificationUrl;
           document.body.appendChild(textArea);
@@ -389,45 +312,14 @@ export default function ResourcesScreen() {
           document.execCommand('copy');
           document.body.removeChild(textArea);
         }
-      } else {
-        // Mobile clipboard (would need expo-clipboard)
-        // For now, just show the URL
-        Alert.alert(
-          'Verification Link',
-          badge.verificationUrl,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Copy', onPress: () => console.log('Copy to clipboard') }
-          ]
-        );
-        return;
       }
       
       Alert.alert('Copied!', 'Verification link copied to clipboard');
     } catch (error: any) {
       console.error('Error copying link:', error);
-      Alert.alert(
-        'Copy Failed',
-        'Unable to copy the link. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Copy Failed', 'Unable to copy the link. Please try again.');
     } finally {
       setIsCopying(false);
-    }
-  };
-
-  const handleVerificationOpen = async (badge: DigitalBadge) => {
-    try {
-      if (Platform.OS === 'web') {
-        window.open(badge.verificationUrl, '_blank');
-      } else {
-        // For mobile, you might want to use expo-web-browser
-        console.log('Opening verification:', badge.verificationUrl);
-        Alert.alert('Opening Verification', 'Opening verification link...');
-      }
-    } catch (error) {
-      console.error('Error opening verification:', error);
-      Alert.alert('Error', 'Unable to open verification link. Please try again.');
     }
   };
 
@@ -435,76 +327,40 @@ export default function ResourcesScreen() {
     try {
       return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'long',
+        month: 'short',
         day: 'numeric'
       });
     } catch (error) {
-      console.error('Date formatting error:', error);
-      return dateString; // Return original string if formatting fails
+      return dateString;
     }
   };
 
-  const renderBadgeCard = (badge: DigitalBadge, index: number) => (
+  const renderFeaturedCard = (item: typeof featuredResources[0], index: number) => (
     <Animated.View
-      key={badge.id}
-      entering={FadeInUp.delay(index * 100).duration(500)}
-      style={[
-        styles.badgeCard,
-        { backgroundColor: colors.background },
-        viewMode === 'list' && styles.badgeCardList
-      ]}
+      key={item.id}
+      entering={SlideInRight.delay(index * 200).duration(600)}
+      style={[styles.featuredCard, { width: screenWidth * 0.85 }]}
     >
-      <TouchableOpacity
-        onPress={() => handleBadgePress(badge)}
-        style={styles.badgeCardContent}
-        activeOpacity={0.8}
-      >
-        <View style={styles.badgeImageContainer}>
-          <Image source={{ uri: badge.badgeImage }} style={styles.badgeImage} />
-          {badge.isVerified && (
-            <View style={[styles.verifiedBadge, { backgroundColor: colors.success[500] }]}>
-              <CheckCircle size={16} color="white" />
+      <TouchableOpacity style={styles.featuredCardContent} activeOpacity={0.9}>
+        <Image source={{ uri: item.image }} style={styles.featuredCardImage} />
+        <View style={[styles.featuredCardOverlay, { 
+          background: `linear-gradient(135deg, ${item.gradient[0]}CC, ${item.gradient[1]}CC)` 
+        }]}>
+          <View style={styles.featuredCardHeader}>
+            <View style={styles.featuredCardIcon}>
+              {item.icon}
             </View>
-          )}
-        </View>
-        
-        <View style={styles.badgeInfo}>
-          <Text style={[styles.badgeName, { color: colors.text }]} numberOfLines={2}>
-            {badge.name}
-          </Text>
-          <Text style={[styles.badgeIssuer, { color: colors.textSecondary }]}>
-            {badge.issuer}
-          </Text>
-          <Text style={[styles.badgeDate, { color: colors.neutral[500] }]}>
-            Earned {formatDate(badge.dateEarned)}
-          </Text>
-          
-          <View style={styles.badgeMetrics}>
-            <View style={styles.badgeMetric}>
-              <Eye size={12} color={colors.neutral[500]} />
-              <Text style={[styles.badgeMetricText, { color: colors.neutral[600] }]}>
-                {badge.viewCount}
-              </Text>
-            </View>
-            <View style={styles.badgeMetric}>
-              <Share2 size={12} color={colors.neutral[500]} />
-              <Text style={[styles.badgeMetricText, { color: colors.neutral[600] }]}>
-                {badge.shareCount}
-              </Text>
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumText}>Premium</Text>
             </View>
           </View>
-          
-          <View style={styles.badgeTags}>
-            <Badge
-              label={badge.skillLevel}
-              variant="primary"
-              size="small"
-            />
-            <Badge
-              label={badge.category}
-              variant="neutral"
-              size="small"
-            />
+          <View style={styles.featuredCardBody}>
+            <Text style={styles.featuredCardTitle}>{item.title}</Text>
+            <Text style={styles.featuredCardSubtitle}>{item.subtitle}</Text>
+          </View>
+          <View style={styles.featuredCardFooter}>
+            <Text style={styles.exploreText}>Explore Collection</Text>
+            <ExternalLink size={20} color="white" />
           </View>
         </View>
       </TouchableOpacity>
@@ -517,48 +373,117 @@ export default function ResourcesScreen() {
       entering={FadeInUp.delay(index * 100).duration(500)}
       style={[styles.resourceCard, { backgroundColor: colors.background }]}
     >
-      <View style={styles.resourceHeader}>
-        <View style={[styles.resourceIcon, { backgroundColor: `${resource.color}15` }]}>
+      <View style={styles.resourceCardHeader}>
+        <View style={[styles.resourceIconContainer, { backgroundColor: resource.color }]}>
           {resource.icon}
         </View>
-        <View style={styles.resourceInfo}>
-          <Text style={[styles.resourceTitle, { color: colors.text }]}>
-            {resource.title}
-          </Text>
-          <Text style={[styles.resourceDescription, { color: colors.textSecondary }]}>
-            {resource.description}
-          </Text>
-          <View style={styles.resourceMeta}>
-            <View style={[styles.categoryBadge, { backgroundColor: resource.color }]}>
-              <Text style={styles.categoryBadgeText}>{resource.category}</Text>
-            </View>
-            <Text style={[styles.fileInfo, { color: colors.textSecondary }]}>
-              {resource.fileType} • {resource.fileSize}
-            </Text>
-          </View>
+        <View style={styles.resourceCardActions}>
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: colors.neutral[100] }]}
+            onPress={() => handleDownload(resource)}
+          >
+            <Download size={16} color={colors.neutral[600]} />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.actionButton, { backgroundColor: colors.neutral[100] }]}
+          >
+            <ExternalLink size={16} color={colors.neutral[600]} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.resourceActions}>
-        <Button
-          title="Download"
-          variant="outline"
-          size="small"
-          icon={<Download size={16} color={colors.primary[500]} />}
-          iconPosition="left"
-          onPress={() => handleDownload(resource)}
-          style={styles.actionButton}
-        />
-        <Button
-          title="Open"
-          variant="ghost"
-          size="small"
-          icon={<ExternalLink size={16} color={colors.primary[500]} />}
-          iconPosition="left"
-          onPress={() => handleOpen(resource)}
-          style={styles.actionButton}
-        />
+      <View style={styles.resourceCardContent}>
+        <Text style={[styles.resourceCardTitle, { color: colors.text }]} numberOfLines={2}>
+          {resource.title}
+        </Text>
+        <Text style={[styles.resourceCardDescription, { color: colors.textSecondary }]} numberOfLines={2}>
+          {resource.description}
+        </Text>
+
+        <View style={styles.resourceCardMeta}>
+          <View style={styles.metaItem}>
+            <Text style={[styles.metaLabel, { color: colors.neutral[500] }]}>Type:</Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>{resource.fileType}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Text style={[styles.metaLabel, { color: colors.neutral[500] }]}>Size:</Text>
+            <Text style={[styles.metaValue, { color: colors.text }]}>{resource.fileSize}</Text>
+          </View>
+        </View>
+
+        <View style={styles.resourceCardFooter}>
+          <View style={styles.resourceStats}>
+            <View style={styles.statItem}>
+              <Download size={14} color={colors.neutral[500]} />
+              <Text style={[styles.statText, { color: colors.neutral[600] }]}>
+                {resource.downloads?.toLocaleString() || '0'}
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Star size={14} color={colors.warning[500]} />
+              <Text style={[styles.statText, { color: colors.neutral[600] }]}>
+                {resource.rating || '0'}
+              </Text>
+            </View>
+          </View>
+          <Badge label={resource.category} variant="neutral" size="small" />
+        </View>
       </View>
+    </Animated.View>
+  );
+
+  const renderBadgeCard = (badge: DigitalBadge, index: number) => (
+    <Animated.View
+      key={badge.id}
+      entering={FadeInUp.delay(index * 100).duration(500)}
+      style={[styles.badgeCard, { backgroundColor: colors.background }]}
+    >
+      <TouchableOpacity
+        onPress={() => setSelectedBadge(badge)}
+        style={styles.badgeCardContent}
+        activeOpacity={0.9}
+      >
+        <View style={styles.badgeCardHeader}>
+          <Image source={{ uri: badge.badgeImage }} style={styles.badgeImage} />
+          {badge.isVerified && (
+            <View style={[styles.verifiedBadge, { backgroundColor: colors.success[500] }]}>
+              <CheckCircle size={16} color="white" />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.badgeCardBody}>
+          <Text style={[styles.badgeTitle, { color: colors.text }]} numberOfLines={2}>
+            {badge.name}
+          </Text>
+          <Text style={[styles.badgeIssuer, { color: colors.textSecondary }]}>
+            {badge.issuer}
+          </Text>
+          <Text style={[styles.badgeDate, { color: colors.neutral[500] }]}>
+            {formatDate(badge.dateEarned)}
+          </Text>
+
+          <View style={styles.badgeStats}>
+            <View style={styles.badgeStatItem}>
+              <Eye size={12} color={colors.neutral[500]} />
+              <Text style={[styles.badgeStatText, { color: colors.neutral[600] }]}>
+                {badge.viewCount}
+              </Text>
+            </View>
+            <View style={styles.badgeStatItem}>
+              <Share2 size={12} color={colors.neutral[500]} />
+              <Text style={[styles.badgeStatText, { color: colors.neutral[600] }]}>
+                {badge.shareCount}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.badgeTags}>
+            <Badge label={badge.skillLevel} variant="primary" size="small" />
+            <Badge label={badge.category} variant="neutral" size="small" />
+          </View>
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 
@@ -566,214 +491,124 @@ export default function ResourcesScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Resources</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.neutral[100] }]}>
-              <Search size={20} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.iconButton, { backgroundColor: colors.neutral[100] }]}>
-              <Download size={20} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Learning Resources Header */}
-        <View style={styles.learningHeader}>
-          <Text style={[styles.learningTitle, { color: colors.text }]}>Learning Resources</Text>
-          <Text style={[styles.learningSubtitle, { color: colors.textSecondary }]}>
-            Tools, guides, and materials to enhance your learning
-          </Text>
-        </View>
-
-        {/* Featured Cards */}
-        <View style={styles.featuredContainer}>
-          <TouchableOpacity style={[styles.featuredCard, styles.certificatesCard]}>
-            <Award size={32} color="white" />
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle}>Certificates</Text>
-              <Text style={styles.featuredSubtitle}>Professional certifications</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.featuredCard, styles.guidesCard]}>
-            <BookOpen size={32} color="white" />
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle}>Study Guides</Text>
-              <Text style={styles.featuredSubtitle}>Comprehensive guides</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Category Tabs */}
-        <View style={styles.categoryTabs}>
-          {resourceCategories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryTab,
-                activeCategory === category.id && styles.activeCategoryTab,
-                { backgroundColor: activeCategory === category.id ? colors.primary[50] : 'transparent' }
-              ]}
-              onPress={() => setActiveCategory(category.id)}
-            >
-              <Text
-                style={[
-                  styles.categoryTabText,
-                  { color: activeCategory === category.id ? colors.primary[600] : colors.textSecondary }
-                ]}
-              >
-                {category.name}
+        <Animated.View 
+          entering={FadeInUp.duration(400)}
+          style={styles.header}
+        >
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={[styles.headerTitle, { color: colors.text }]}>Resources</Text>
+              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+                Tools, guides, and credentials to accelerate your growth
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={[styles.headerButton, { backgroundColor: colors.neutral[100] }]}>
+                <Search size={20} color={colors.text} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.headerButton, { backgroundColor: colors.neutral[100] }]}>
+                <Download size={20} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
 
-        {/* Search and Controls */}
-        <View style={[styles.searchContainer, { backgroundColor: colors.neutral[50] }]}>
+        {/* Search Bar */}
+        <Animated.View 
+          entering={FadeInUp.delay(100).duration(400)}
+          style={[styles.searchContainer, { backgroundColor: colors.neutral[50] }]}
+        >
           <Search size={20} color={colors.neutral[400]} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search resources..."
-            placeholderTextColor={colors.neutral[400]}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {activeCategory === 'badges' && (
-            <>
-              <TouchableOpacity 
-                style={styles.filterButton}
-                onPress={() => setShowFilters(!showFilters)}
-              >
-                <Filter size={20} color={colors.neutral[400]} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.viewModeButton}
-                onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              >
-                {viewMode === 'grid' ? 
-                  <List size={20} color={colors.neutral[400]} /> : 
-                  <Grid3x3 size={20} color={colors.neutral[400]} />
-                }
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
+          <Text style={[styles.searchPlaceholder, { color: colors.neutral[400] }]}>
+            Search resources, tools, and badges...
+          </Text>
+          <TouchableOpacity style={styles.filterButton}>
+            <Filter size={18} color={colors.neutral[400]} />
+          </TouchableOpacity>
+        </Animated.View>
 
-        {/* Badge Filters */}
-        {activeCategory === 'badges' && showFilters && (
-          <Animated.View 
-            entering={FadeInUp.duration(300)}
-            style={[styles.filtersPanel, { backgroundColor: colors.neutral[50] }]}
-          >
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.filterGroup}>
-                <Text style={[styles.filterLabel, { color: colors.text }]}>Category:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {badgeCategories.map((cat) => (
-                    <TouchableOpacity
-                      key={cat}
-                      style={[
-                        styles.filterChip,
-                        { backgroundColor: colors.neutral[100] },
-                        badgeCategory === cat && { backgroundColor: colors.primary[100] }
-                      ]}
-                      onPress={() => setBadgeCategory(cat)}
-                    >
-                      <Text style={[
-                        styles.filterChipText,
-                        { color: badgeCategory === cat ? colors.primary[700] : colors.neutral[600] }
-                      ]}>
-                        {cat}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-              
-              <View style={styles.filterGroup}>
-                <Text style={[styles.filterLabel, { color: colors.text }]}>Level:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {skillLevels.map((level) => (
-                    <TouchableOpacity
-                      key={level}
-                      style={[
-                        styles.filterChip,
-                        { backgroundColor: colors.neutral[100] },
-                        skillLevel === level && { backgroundColor: colors.primary[100] }
-                      ]}
-                      onPress={() => setSkillLevel(level)}
-                    >
-                      <Text style={[
-                        styles.filterChipText,
-                        { color: skillLevel === level ? colors.primary[700] : colors.neutral[600] }
-                      ]}>
-                        {level}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Featured Resources */}
+          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Collections</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+            >
+              {featuredResources.map((item, index) => renderFeaturedCard(item, index))}
             </ScrollView>
           </Animated.View>
-        )}
 
-        {/* Content */}
-        <ScrollView style={styles.contentList} showsVerticalScrollIndicator={false}>
-          {activeCategory === 'badges' ? (
-            <View style={[
-              styles.badgesContainer,
-              viewMode === 'grid' ? styles.badgesGrid : styles.badgesList
-            ]}>
-              {filteredBadges.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Award size={48} color={colors.neutral[400]} />
-                  <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-                    No badges found
+          {/* Category Navigation */}
+          <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.section}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryList}
+            >
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={[
+                    styles.categoryChip,
+                    { backgroundColor: colors.neutral[100] },
+                    activeCategory === category.id && { 
+                      backgroundColor: colors.primary[50], 
+                      borderColor: colors.primary[200] 
+                    }
+                  ]}
+                  onPress={() => setActiveCategory(category.id)}
+                >
+                  {category.icon}
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      { color: colors.neutral[600] },
+                      activeCategory === category.id && { 
+                        color: colors.primary[600], 
+                        fontWeight: '600' 
+                      }
+                    ]}
+                  >
+                    {category.name}
                   </Text>
-                  <Text style={[styles.emptyStateMessage, { color: colors.textSecondary }]}>
-                    Try adjusting your search or filters
-                  </Text>
-                </View>
-              ) : (
-                filteredBadges.map((badge, index) => renderBadgeCard(badge, index))
-              )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
+
+          {/* Content Grid */}
+          <Animated.View entering={FadeInUp.delay(400).duration(400)} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                {activeCategory === 'badges' ? 'Digital Badges' : 'Learning Resources'}
+              </Text>
+              <TouchableOpacity style={styles.viewModeButton}>
+                {viewMode === 'grid' ? 
+                  <List size={20} color={colors.neutral[500]} /> : 
+                  <Grid3x3 size={20} color={colors.neutral[500]} />
+                }
+              </TouchableOpacity>
             </View>
-          ) : (
-            <View style={styles.resourcesContainer}>
-              {filteredResources.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <FileText size={48} color={colors.neutral[400]} />
-                  <Text style={[styles.emptyStateTitle, { color: colors.text }]}>
-                    No resources found
-                  </Text>
-                  <Text style={[styles.emptyStateMessage, { color: colors.textSecondary }]}>
-                    Try adjusting your search or category filter
-                  </Text>
-                </View>
+
+            <View style={styles.contentGrid}>
+              {activeCategory === 'badges' ? (
+                filteredBadges.map((badge, index) => renderBadgeCard(badge, index))
               ) : (
                 filteredResources.map((resource, index) => renderResourceCard(resource, index))
               )}
             </View>
-          )}
+          </Animated.View>
 
-          {/* Built on Bolt badge */}
-          <View style={styles.boltBadgeContainer}>
-            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>
-              Built on Bolt
-            </Text>
-          </View>
+          {/* Bottom Spacing */}
+          <View style={styles.bottomSpacing} />
         </ScrollView>
 
         {/* Badge Detail Modal */}
-        <Modal
-          visible={selectedBadge !== null}
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setSelectedBadge(null)}
-        >
-          {selectedBadge && (
-            <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+        {selectedBadge && (
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
               <View style={styles.modalHeader}>
                 <TouchableOpacity
                   style={styles.closeButton}
@@ -785,93 +620,15 @@ export default function ResourcesScreen() {
                 <View style={styles.modalHeaderSpacer} />
               </View>
 
-              <ScrollView style={styles.modalContent}>
+              <ScrollView style={styles.modalBody}>
                 <View style={styles.badgeDetailHeader}>
                   <Image source={{ uri: selectedBadge.badgeImage }} style={styles.badgeDetailImage} />
-                  <View style={styles.badgeDetailInfo}>
-                    <Text style={[styles.badgeDetailName, { color: colors.text }]}>
-                      {selectedBadge.name}
-                    </Text>
-                    <View style={styles.issuerContainer}>
-                      <Image source={{ uri: selectedBadge.issuerLogo }} style={styles.issuerLogo} />
-                      <Text style={[styles.badgeDetailIssuer, { color: colors.textSecondary }]}>
-                        {selectedBadge.issuer}
-                      </Text>
-                    </View>
-                    <View style={styles.verificationContainer}>
-                      {selectedBadge.isVerified ? (
-                        <View style={styles.verifiedStatus}>
-                          <Shield size={16} color={colors.success[500]} />
-                          <Text style={[styles.verifiedText, { color: colors.success[600] }]}>
-                            Verified Credential
-                          </Text>
-                        </View>
-                      ) : (
-                        <View style={styles.unverifiedStatus}>
-                          <Shield size={16} color={colors.warning[500]} />
-                          <Text style={[styles.unverifiedText, { color: colors.warning[600] }]}>
-                            Pending Verification
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.badgeDetailSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Description</Text>
-                  <Text style={[styles.badgeDescription, { color: colors.textSecondary }]}>
-                    {selectedBadge.description}
+                  <Text style={[styles.badgeDetailName, { color: colors.text }]}>
+                    {selectedBadge.name}
                   </Text>
-                </View>
-
-                <View style={styles.badgeDetailSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Details</Text>
-                  <View style={styles.detailsGrid}>
-                    <View style={styles.detailItem}>
-                      <Calendar size={16} color={colors.neutral[500]} />
-                      <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Earned</Text>
-                      <Text style={[styles.detailValue, { color: colors.text }]}>
-                        {formatDate(selectedBadge.dateEarned)}
-                      </Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Star size={16} color={colors.neutral[500]} />
-                      <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Level</Text>
-                      <Text style={[styles.detailValue, { color: colors.text }]}>
-                        {selectedBadge.skillLevel.charAt(0).toUpperCase() + selectedBadge.skillLevel.slice(1)}
-                      </Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Building size={16} color={colors.neutral[500]} />
-                      <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Type</Text>
-                      <Text style={[styles.detailValue, { color: colors.text }]}>
-                        {selectedBadge.credentialType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Text>
-                    </View>
-                    <View style={styles.detailItem}>
-                      <Users size={16} color={colors.neutral[500]} />
-                      <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Views</Text>
-                      <Text style={[styles.detailValue, { color: colors.text }]}>
-                        {selectedBadge.viewCount}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.badgeDetailSection}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Skills</Text>
-                  <View style={styles.tagsContainer}>
-                    {selectedBadge.tags.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        label={tag}
-                        variant="neutral"
-                        size="small"
-                        style={styles.skillTag}
-                      />
-                    ))}
-                  </View>
+                  <Text style={[styles.badgeDetailIssuer, { color: colors.textSecondary }]}>
+                    {selectedBadge.issuer}
+                  </Text>
                 </View>
 
                 <View style={styles.actionButtons}>
@@ -893,19 +650,11 @@ export default function ResourcesScreen() {
                     disabled={isCopying}
                     style={styles.copyButton}
                   />
-                  <Button
-                    title="Verify"
-                    variant="ghost"
-                    icon={<ExternalLink size={16} color={colors.primary[500]} />}
-                    iconPosition="left"
-                    onPress={() => handleVerificationOpen(selectedBadge)}
-                    style={styles.verifyButton}
-                  />
                 </View>
               </ScrollView>
-            </SafeAreaView>
-          )}
-        </Modal>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -919,171 +668,265 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 16,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    lineHeight: 22,
   },
   headerActions: {
     flexDirection: 'row',
     gap: 8,
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  learningHeader: {
-    paddingHorizontal: 16,
-    marginBottom: 20,
-  },
-  learningTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  learningSubtitle: {
-    fontSize: 14,
-  },
-  featuredContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-    gap: 12,
-  },
-  featuredCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    minHeight: 80,
-  },
-  certificatesCard: {
-    backgroundColor: '#22C55E',
-  },
-  guidesCard: {
-    backgroundColor: '#3B82F6',
-  },
-  featuredContent: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 2,
-  },
-  featuredSubtitle: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  categoryTabs: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  categoryTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-  },
-  activeCategoryTab: {
-    // backgroundColor set dynamically
-  },
-  categoryTabText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    marginHorizontal: 20,
+    marginBottom: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
   },
-  searchInput: {
+  searchPlaceholder: {
     flex: 1,
-    marginLeft: 8,
+    marginLeft: 12,
     fontSize: 16,
   },
   filterButton: {
     padding: 4,
-    marginLeft: 8,
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 20,
+    marginBottom: 16,
   },
   viewModeButton: {
-    padding: 4,
-    marginLeft: 8,
+    padding: 8,
   },
-  filtersPanel: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 12,
-    borderRadius: 8,
+  featuredList: {
+    paddingHorizontal: 20,
   },
-  filterGroup: {
-    marginBottom: 12,
+  featuredCard: {
+    height: 200,
+    marginRight: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
+  featuredCardContent: {
+    flex: 1,
   },
-  filterChip: {
+  featuredCardImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  featuredCardOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  featuredCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  featuredCardIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  premiumBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    marginRight: 8,
   },
-  filterChipText: {
+  premiumText: {
+    color: 'white',
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  contentList: {
+  featuredCardBody: {
     flex: 1,
+    justifyContent: 'center',
+  },
+  featuredCardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: 'white',
+    marginBottom: 4,
+  },
+  featuredCardSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  featuredCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  exploreText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  categoryList: {
+    paddingHorizontal: 20,
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  badgesContainer: {
-    paddingBottom: 80,
+  categoryChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
   },
-  badgesGrid: {
+  contentGrid: {
+    paddingHorizontal: 20,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  badgesList: {
-    // List layout
-  },
-  badgeCard: {
-    borderRadius: 12,
+  resourceCard: {
+    width: '48%',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    width: '48%',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  badgeCardList: {
-    width: '100%',
+  resourceCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  resourceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resourceCardActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resourceCardContent: {
+    flex: 1,
+  },
+  resourceCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  resourceCardDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  resourceCardMeta: {
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  metaLabel: {
+    fontSize: 12,
+    marginRight: 6,
+  },
+  metaValue: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  resourceCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  resourceStats: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    fontSize: 12,
+  },
+  badgeCard: {
+    width: '48%',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   badgeCardContent: {
-    padding: 16,
-  },
-  badgeImageContainer: {
-    position: 'relative',
     alignItems: 'center',
+  },
+  badgeCardHeader: {
+    position: 'relative',
     marginBottom: 12,
   },
   badgeImage: {
@@ -1093,18 +936,18 @@ const styles = StyleSheet.create({
   },
   verifiedBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 20,
+    bottom: -4,
+    right: -4,
     width: 24,
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  badgeInfo: {
+  badgeCardBody: {
     alignItems: 'center',
   },
-  badgeName: {
+  badgeTitle: {
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
@@ -1120,18 +963,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
   },
-  badgeMetrics: {
+  badgeStats: {
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 12,
     marginBottom: 8,
   },
-  badgeMetric: {
+  badgeStatItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  badgeMetricText: {
+  badgeStatText: {
     fontSize: 10,
   },
   badgeTags: {
@@ -1140,101 +982,28 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
   },
-  resourcesContainer: {
-    paddingBottom: 80,
-  },
-  resourceCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  resourceHeader: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  resourceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    padding: 20,
   },
-  resourceInfo: {
-    flex: 1,
-  },
-  resourceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  resourceDescription: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  resourceMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  categoryBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: 'white',
-    textTransform: 'uppercase',
-  },
-  fileInfo: {
-    fontSize: 12,
-  },
-  resourceActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    flex: 1,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateMessage: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  boltBadgeContainer: {
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  boltBadgeText: {
-    fontSize: 12,
-  },
-  // Modal styles
-  modalContainer: {
-    flex: 1,
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 20,
+    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
@@ -1248,9 +1017,8 @@ const styles = StyleSheet.create({
   modalHeaderSpacer: {
     width: 40,
   },
-  modalContent: {
-    flex: 1,
-    padding: 16,
+  modalBody: {
+    padding: 20,
   },
   badgeDetailHeader: {
     alignItems: 'center',
@@ -1262,95 +1030,18 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 16,
   },
-  badgeDetailInfo: {
-    alignItems: 'center',
-  },
   badgeDetailName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },
-  issuerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  issuerLogo: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    marginRight: 8,
-  },
   badgeDetailIssuer: {
     fontSize: 16,
-  },
-  verificationContainer: {
-    marginBottom: 8,
-  },
-  verifiedStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  verifiedText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  unverifiedStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  unverifiedText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  badgeDetailSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  badgeDescription: {
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  detailsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  detailItem: {
-    flex: 1,
-    minWidth: '45%',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-  },
-  detailLabel: {
-    fontSize: 12,
-    marginTop: 4,
-    marginBottom: 2,
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  skillTag: {
-    marginBottom: 4,
+    textAlign: 'center',
   },
   actionButtons: {
     gap: 12,
-    marginTop: 24,
   },
   shareButton: {
     // Primary button styling
@@ -1358,7 +1049,7 @@ const styles = StyleSheet.create({
   copyButton: {
     // Outline button styling
   },
-  verifyButton: {
-    // Ghost button styling
+  bottomSpacing: {
+    height: 100,
   },
 });
