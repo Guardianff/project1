@@ -1,38 +1,37 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkles } from 'lucide-react-native';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  Dimensions,
+} from 'react-native';
+import { Bot } from 'lucide-react-native';
+import { useAI } from '@/context/AIContext';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { useAI } from '@/context/AIContext';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring,
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
   withRepeat,
-  withSequence
+  withTiming,
+  interpolate,
 } from 'react-native-reanimated';
+
+const { width, height } = Dimensions.get('window');
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function AIFloatingButton() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const { toggleAI } = useAI();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
-  const { showAI } = useAI();
   
-  const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
-
   // Breathing animation
+  const scale = useSharedValue(1);
+  
   React.useEffect(() => {
     scale.value = withRepeat(
-      withSequence(
-        withSpring(1.1, { damping: 10 }),
-        withSpring(1, { damping: 10 })
-      ),
+      withTiming(1.1, { duration: 2000 }),
       -1,
       true
     );
@@ -41,24 +40,27 @@ export function AIFloatingButton() {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { scale: scale.value },
-        { rotate: `${rotation.value}deg` }
+        {
+          scale: interpolate(
+            scale.value,
+            [1, 1.1],
+            [1, 1.05]
+          ),
+        },
       ],
     };
   });
 
   const handlePress = () => {
-    rotation.value = withSpring(rotation.value + 360);
-    router.push('/ai-assistant');
+    toggleAI();
   };
 
   return (
     <AnimatedTouchable
       style={[
-        styles.floatingButton,
+        styles.container,
         {
           backgroundColor: colors.primary[500],
-          bottom: Platform.OS === 'ios' ? 100 + insets.bottom : 90,
           shadowColor: colors.primary[500],
         },
         animatedStyle,
@@ -66,24 +68,34 @@ export function AIFloatingButton() {
       onPress={handlePress}
       activeOpacity={0.8}
     >
-      <Sparkles size={28} color="white" />
+      <Bot size={28} color="white" strokeWidth={2} />
     </AnimatedTouchable>
   );
 }
 
 const styles = StyleSheet.create({
-  floatingButton: {
+  container: {
     position: 'absolute',
+    bottom: Platform.OS === 'web' ? 100 : 120,
     right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
     shadowOpacity: 0.3,
-    shadowRadius: 12,
+    shadowRadius: 8,
     elevation: 8,
     zIndex: 1000,
+    ...Platform.select({
+      web: {
+        cursor: 'pointer',
+        userSelect: 'none',
+      },
+    }),
   },
 });
