@@ -14,42 +14,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  X, 
-  Target, 
-  Briefcase, 
-  Dumbbell, 
-  Heart, 
-  BookOpen, 
-  Calendar,
-  Settings,
-  MessageCircle,
-  Mic,
-  Send,
-  Sparkles,
-  TrendingUp,
-  Clock,
-  Zap,
-  Globe,
-  Moon,
-  Sun,
-  Volume2,
-  VolumeX,
-  Download,
-  Upload,
-  Search,
-  FileText,
-  BarChart3,
-  CheckCircle,
-  AlertCircle,
-  Info,
-  Lightbulb,
-  Brain,
-  Keyboard,
-  Eye,
-  Type,
-  Palette
-} from 'lucide-react-native';
+import { X, Target, Briefcase, Dumbbell, Heart, BookOpen, Calendar, Settings, MessageCircle, Mic, Send, Sparkles, TrendingUp, Clock, Zap, Globe, Moon, Sun, Volume2, VolumeX, Download, Upload, Search, FileText, ChartBar as BarChart3, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Info, Lightbulb, Brain, Keyboard, Eye, Type, Palette } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
