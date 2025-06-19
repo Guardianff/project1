@@ -213,6 +213,38 @@ export const DesignTokens = {
     xl: 1280,
     '2xl': 1536,
   },
+
+  // Component Variants
+  ComponentVariants: {
+    button: {
+      sizes: {
+        sm: { height: 32, paddingHorizontal: 12, fontSize: 14 },
+        md: { height: 40, paddingHorizontal: 16, fontSize: 16 },
+        lg: { height: 48, paddingHorizontal: 20, fontSize: 18 },
+        xl: { height: 56, paddingHorizontal: 24, fontSize: 20 },
+      },
+      variants: {
+        primary: 'primary',
+        secondary: 'secondary',
+        outline: 'outline',
+        ghost: 'ghost',
+        destructive: 'destructive',
+      },
+    },
+    card: {
+      variants: {
+        elevated: 'elevated',
+        outlined: 'outlined',
+        filled: 'filled',
+      },
+      sizes: {
+        sm: { padding: 12, borderRadius: 8 },
+        md: { padding: 16, borderRadius: 12 },
+        lg: { padding: 20, borderRadius: 16 },
+        xl: { padding: 24, borderRadius: 20 },
+      },
+    },
+  },
 };
 
 // Accessibility Constants
@@ -226,34 +258,5 @@ export const AccessibilityTokens = {
   },
 };
 
-// Component Variants
-export const ComponentVariants = {
-  button: {
-    sizes: {
-      sm: { height: 32, paddingHorizontal: 12, fontSize: 14 },
-      md: { height: 40, paddingHorizontal: 16, fontSize: 16 },
-      lg: { height: 48, paddingHorizontal: 20, fontSize: 18 },
-      xl: { height: 56, paddingHorizontal: 24, fontSize: 20 },
-    },
-    variants: {
-      primary: 'primary',
-      secondary: 'secondary',
-      outline: 'outline',
-      ghost: 'ghost',
-      destructive: 'destructive',
-    },
-  },
-  card: {
-    variants: {
-      elevated: 'elevated',
-      outlined: 'outlined',
-      filled: 'filled',
-    },
-    sizes: {
-      sm: { padding: 12, borderRadius: 8 },
-      md: { padding: 16, borderRadius: 12 },
-      lg: { padding: 20, borderRadius: 16 },
-      xl: { padding: 24, borderRadius: 20 },
-    },
-  },
-};
+// Component Variants (kept for backward compatibility)
+export const ComponentVariants = DesignTokens.ComponentVariants;
