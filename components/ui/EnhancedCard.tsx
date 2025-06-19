@@ -29,7 +29,15 @@ export function EnhancedCard({
   const { isDarkMode } = useTheme();
   const colors = isDarkMode ? DesignTokens.colors : DesignTokens.colors;
   
-  const sizeConfig = DesignTokens.ComponentVariants.card.sizes[size];
+  // Fallback configuration in case DesignTokens.ComponentVariants is undefined
+  const defaultSizeConfig = {
+    sm: { padding: 12, borderRadius: 8 },
+    md: { padding: 16, borderRadius: 12 },
+    lg: { padding: 20, borderRadius: 16 },
+    xl: { padding: 24, borderRadius: 20 },
+  };
+  
+  const sizeConfig = DesignTokens.ComponentVariants?.card?.sizes?.[size] || defaultSizeConfig[size];
   
   const getCardStyle = () => {
     const baseStyle = {
