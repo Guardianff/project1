@@ -1,5 +1,6 @@
 const lightColors = {
   primary: {
+    25: '#F8FAFF',
     50: '#EFF6FF',
     100: '#DBEAFE',
     200: '#BFDBFE',
@@ -13,6 +14,7 @@ const lightColors = {
     950: '#172554',
   },
   secondary: {
+    25: '#FAFAFF',
     50: '#F5F3FF',
     100: '#EDE9FE',
     200: '#DDD6FE',
@@ -26,6 +28,7 @@ const lightColors = {
     950: '#2E1065',
   },
   accent: {
+    25: '#F0FDFA',
     50: '#F0FDFA',
     100: '#CCFBF1',
     200: '#99F6E4',
@@ -39,6 +42,7 @@ const lightColors = {
     950: '#042F2E',
   },
   success: {
+    25: '#F7FEF9',
     50: '#F0FDF4',
     100: '#DCFCE7',
     200: '#BBF7D0',
@@ -52,6 +56,7 @@ const lightColors = {
     950: '#052E16',
   },
   warning: {
+    25: '#FFFCF5',
     50: '#FFFBEB',
     100: '#FEF3C7',
     200: '#FDE68A',
@@ -65,6 +70,7 @@ const lightColors = {
     950: '#451A03',
   },
   error: {
+    25: '#FFFBFA',
     50: '#FEF2F2',
     100: '#FEE2E2',
     200: '#FECACA',
@@ -78,6 +84,8 @@ const lightColors = {
     950: '#450A0A',
   },
   neutral: {
+    0: '#FFFFFF',
+    25: '#FCFCFD',
     50: '#F8FAFC',
     100: '#F1F5F9',
     200: '#E2E8F0',
@@ -91,13 +99,17 @@ const lightColors = {
     950: '#020617',
   },
   background: '#FFFFFF',
+  surface: '#FFFFFF',
   text: '#0F172A',
   textSecondary: '#64748B',
+  textTertiary: '#94A3B8',
   divider: '#E2E8F0',
+  overlay: 'rgba(15, 23, 42, 0.6)',
 };
 
 const darkColors = {
   primary: {
+    25: '#172554',
     50: '#172554',
     100: '#1E3A8A',
     200: '#1E40AF',
@@ -111,6 +123,7 @@ const darkColors = {
     950: '#EFF6FF',
   },
   secondary: {
+    25: '#2E1065',
     50: '#2E1065',
     100: '#4C1D95',
     200: '#5B21B6',
@@ -124,6 +137,7 @@ const darkColors = {
     950: '#F5F3FF',
   },
   accent: {
+    25: '#042F2E',
     50: '#042F2E',
     100: '#134E4A',
     200: '#115E59',
@@ -137,6 +151,7 @@ const darkColors = {
     950: '#F0FDFA',
   },
   success: {
+    25: '#052E16',
     50: '#052E16',
     100: '#14532D',
     200: '#166534',
@@ -150,6 +165,7 @@ const darkColors = {
     950: '#F0FDF4',
   },
   warning: {
+    25: '#451A03',
     50: '#451A03',
     100: '#78350F',
     200: '#92400E',
@@ -163,6 +179,7 @@ const darkColors = {
     950: '#FFFBEB',
   },
   error: {
+    25: '#450A0A',
     50: '#450A0A',
     100: '#7F1D1D',
     200: '#991B1B',
@@ -176,6 +193,8 @@ const darkColors = {
     950: '#FEF2F2',
   },
   neutral: {
+    0: '#000000',
+    25: '#020617',
     50: '#020617',
     100: '#0F172A',
     200: '#1E293B',
@@ -189,9 +208,12 @@ const darkColors = {
     950: '#F8FAFC',
   },
   background: '#0F172A',
+  surface: '#1E293B',
   text: '#F8FAFC',
   textSecondary: '#94A3B8',
-  divider: '#1E293B',
+  textTertiary: '#64748B',
+  divider: '#334155',
+  overlay: 'rgba(0, 0, 0, 0.8)',
 };
 
 export const Colors = {

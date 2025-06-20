@@ -37,11 +37,11 @@ function AnimatedTabIcon({ focused, color, size, icon, label }: TabIconProps) {
       <View style={[
         styles.tabIconWrapper,
         focused && {
-          backgroundColor: colors.primary[100],
+          backgroundColor: colors.primary[50],
           shadowColor: colors.primary[500],
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.2,
-          shadowRadius: 4,
+          shadowRadius: 8,
           elevation: 4,
         }
       ]}>
@@ -80,6 +80,11 @@ export default function TabLayout() {
             paddingBottom: Platform.OS === 'ios' ? insets.bottom + 5 : 15,
             paddingTop: 15,
             paddingHorizontal: 10,
+            shadowColor: colors.neutral[900],
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.1,
+            shadowRadius: 16,
+            elevation: 16,
           },
           tabBarLabelStyle: {
             display: 'none', // Hide default labels since we're using custom ones
@@ -176,13 +181,8 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     borderTopWidth: 0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 12,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     position: 'absolute',
     left: 0,
     right: 0,
@@ -200,9 +200,9 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   tabIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,

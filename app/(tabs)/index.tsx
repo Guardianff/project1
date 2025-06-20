@@ -19,14 +19,21 @@ import {
   Frown,
   Heart,
   Coffee,
-  Dumbbell
+  Dumbbell,
+  Sparkles,
+  ArrowRight,
+  Users,
+  Star
 } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
-import { SearchBar } from '@/components/ui/SearchBar';
+import { EnhancedSearchBar } from '@/components/ui/EnhancedSearchBar';
+import { EnhancedCard } from '@/components/ui/EnhancedCard';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { Button } from '@/components/ui/Button';
-import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -47,25 +54,90 @@ export default function HomeScreen() {
   };
 
   const quickActions = [
-    { id: 'workout', title: 'Start Workout', icon: <Dumbbell size={20} color="white" />, color: '#10B981' },
-    { id: 'learning', title: 'Continue Learning', icon: <BookOpen size={20} color="white" />, color: '#3B82F6' },
-    { id: 'meeting', title: 'Join Meeting', icon: <Calendar size={20} color="white" />, color: '#8B5CF6' },
-    { id: 'ai', title: 'Ask AI', icon: <Zap size={20} color="white" />, color: '#F59E0B' },
+    { 
+      id: 'workout', 
+      title: 'Start Workout', 
+      subtitle: 'Begin your fitness journey',
+      icon: <Dumbbell size={24} color="white" />, 
+      gradient: ['#10B981', '#22C55E'],
+      stats: '30 min',
+    },
+    { 
+      id: 'learning', 
+      title: 'Continue Learning', 
+      subtitle: 'Pick up where you left off',
+      icon: <BookOpen size={24} color="white" />, 
+      gradient: ['#3B82F6', '#06B6D4'],
+      stats: '12 lessons',
+    },
+    { 
+      id: 'meeting', 
+      title: 'Join Meeting', 
+      subtitle: 'Connect with your coach',
+      icon: <Calendar size={24} color="white" />, 
+      gradient: ['#8B5CF6', '#EC4899'],
+      stats: 'In 2 hours',
+    },
+    { 
+      id: 'ai', 
+      title: 'Ask AI', 
+      subtitle: 'Get personalized guidance',
+      icon: <Zap size={24} color="white" />, 
+      gradient: ['#F59E0B', '#EF4444'],
+      stats: 'Available',
+    },
   ];
 
   const progressStats = [
-    { label: 'Streak', value: '7 days', icon: <TrendingUp size={16} color={colors.success[500]} />, color: colors.success[500] },
-    { label: 'Goals', value: '3/4', icon: <Target size={16} color={colors.primary[500]} />, color: colors.primary[500] },
-    { label: 'Completed', value: '85%', icon: <Award size={16} color={colors.warning[500]} />, color: colors.warning[500] },
+    { 
+      label: 'Learning Streak', 
+      value: '7 days', 
+      icon: <TrendingUp size={20} color={colors.success[500]} />, 
+      color: colors.success[500],
+      progress: 70,
+    },
+    { 
+      label: 'Weekly Goals', 
+      value: '3/4', 
+      icon: <Target size={20} color={colors.primary[500]} />, 
+      color: colors.primary[500],
+      progress: 75,
+    },
+    { 
+      label: 'Completed', 
+      value: '85%', 
+      icon: <Award size={20} color={colors.warning[500]} />, 
+      color: colors.warning[500],
+      progress: 85,
+    },
   ];
 
   const moodOptions = [
-    { id: 'happy', icon: <Smile size={24} color={colors.success[500]} />, label: 'Great' },
-    { id: 'neutral', icon: <Meh size={24} color={colors.warning[500]} />, label: 'Okay' },
-    { id: 'sad', icon: <Frown size={24} color={colors.error[500]} />, label: 'Tough' },
+    { id: 'happy', icon: <Smile size={28} color={colors.success[500]} />, label: 'Great', color: colors.success[500] },
+    { id: 'neutral', icon: <Meh size={28} color={colors.warning[500]} />, label: 'Okay', color: colors.warning[500] },
+    { id: 'sad', icon: <Frown size={28} color={colors.error[500]} />, label: 'Tough', color: colors.error[500] },
   ];
 
-  const dailyTip = "Focus on one skill at a time. Mastery comes from depth, not breadth.";
+  const featuredCourses = [
+    {
+      id: '1',
+      title: 'Advanced React Native',
+      instructor: 'Sarah Johnson',
+      progress: 65,
+      rating: 4.8,
+      students: 1234,
+      image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+    },
+    {
+      id: '2',
+      title: 'UI/UX Design Mastery',
+      instructor: 'Michael Chen',
+      progress: 30,
+      rating: 4.9,
+      students: 856,
+      image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+    },
+  ];
 
   const handleNotificationPress = () => {
     router.push('/notifications');
@@ -75,12 +147,29 @@ export default function HomeScreen() {
     setSelectedMood(moodId);
   };
 
+  const handleQuickAction = (actionId: string) => {
+    switch (actionId) {
+      case 'workout':
+        // Navigate to workout
+        break;
+      case 'learning':
+        router.push('/courses');
+        break;
+      case 'meeting':
+        router.push('/coaching');
+        break;
+      case 'ai':
+        router.push('/ai-assistant');
+        break;
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
         {/* Header */}
         <Animated.View 
-          entering={FadeInUp.duration(400)}
+          entering={FadeInUp.duration(600)}
           style={styles.header}
         >
           <View>
@@ -99,12 +188,17 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
         
-        {/* Search Bar */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)}>
-          <SearchBar
+        {/* Enhanced Search Bar */}
+        <Animated.View entering={FadeInUp.delay(200).duration(600)}>
+          <EnhancedSearchBar
             placeholder="Search courses, topics, instructors..."
             value={searchQuery}
             onChangeText={setSearchQuery}
+            variant="prominent"
+            showFilter
+            showVoice
+            onFilterPress={() => {}}
+            onVoicePress={() => {}}
           />
         </Animated.View>
         
@@ -112,197 +206,233 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Daily Check-in */}
-          <Animated.View 
-            entering={FadeInUp.delay(200).duration(500)}
-            style={[styles.checkInCard, { backgroundColor: colors.background }]}
-          >
-            <Text style={[styles.checkInTitle, { color: colors.text }]}>How are you feeling today?</Text>
-            <View style={styles.moodSelector}>
-              {moodOptions.map((mood) => (
-                <TouchableOpacity
-                  key={mood.id}
-                  style={[
-                    styles.moodOption,
-                    { backgroundColor: colors.neutral[50] },
-                    selectedMood === mood.id && { backgroundColor: colors.primary[50], borderColor: colors.primary[200] }
-                  ]}
-                  onPress={() => handleMoodSelect(mood.id)}
-                >
-                  {mood.icon}
-                  <Text style={[
-                    styles.moodLabel, 
-                    { color: colors.textSecondary },
-                    selectedMood === mood.id && { color: colors.primary[600] }
-                  ]}>
-                    {mood.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
-
           {/* AI Suggestion Banner */}
           {aiSuggestion && (
-            <Animated.View 
-              entering={SlideInRight.delay(300).duration(500)}
-              style={[styles.aiSuggestionBanner, { backgroundColor: colors.primary[50] }]}
-            >
-              <View style={styles.aiSuggestionContent}>
-                <View style={[styles.aiIcon, { backgroundColor: colors.primary[500] }]}>
-                  <Zap size={20} color="white" />
-                </View>
-                <View style={styles.aiTextContent}>
-                  <Text style={[styles.aiSuggestionTitle, { color: colors.primary[700] }]}>
-                    AI Suggestion
-                  </Text>
-                  <Text style={[styles.aiSuggestionText, { color: colors.primary[600] }]}>
-                    {aiSuggestion}
-                  </Text>
-                </View>
-              </View>
-              <Button
-                title="Let's Go"
-                variant="primary"
-                size="small"
+            <Animated.View entering={SlideInRight.delay(300).duration(700)}>
+              <GlassCard
+                style={styles.aiSuggestionBanner}
+                interactive
                 onPress={() => router.push('/ai-assistant')}
-                style={styles.aiActionButton}
-              />
+              >
+                <View style={styles.aiSuggestionContent}>
+                  <View style={[styles.aiIcon, { backgroundColor: colors.primary[500] }]}>
+                    <Sparkles size={24} color="white" />
+                  </View>
+                  <View style={styles.aiTextContent}>
+                    <Text style={[styles.aiSuggestionTitle, { color: colors.primary[700] }]}>
+                      AI Insight
+                    </Text>
+                    <Text style={[styles.aiSuggestionText, { color: colors.primary[600] }]}>
+                      {aiSuggestion}
+                    </Text>
+                  </View>
+                  <ArrowRight size={20} color={colors.primary[500]} />
+                </View>
+              </GlassCard>
             </Animated.View>
           )}
 
-          {/* Today's Plan */}
-          <Animated.View 
-            entering={FadeInUp.delay(400).duration(500)}
-            style={[styles.todaysPlanCard, { backgroundColor: colors.background }]}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>Today's Plan</Text>
-              <TouchableOpacity>
-                <ChevronRight size={20} color={colors.neutral[400]} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.planItems}>
-              <View style={styles.planItem}>
-                <BookOpen size={16} color={colors.primary[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.course}</Text>
+          {/* Daily Check-in */}
+          <Animated.View entering={FadeInUp.delay(400).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.checkInCard} glowEffect>
+              <Text style={[styles.checkInTitle, { color: colors.text }]}>How are you feeling today?</Text>
+              <View style={styles.moodSelector}>
+                {moodOptions.map((mood, index) => (
+                  <Animated.View
+                    key={mood.id}
+                    entering={FadeInUp.delay(500 + index * 100).duration(500)}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.moodOption,
+                        { backgroundColor: colors.neutral[50] },
+                        selectedMood === mood.id && { 
+                          backgroundColor: `${mood.color}15`,
+                          borderColor: mood.color,
+                          borderWidth: 2,
+                        }
+                      ]}
+                      onPress={() => handleMoodSelect(mood.id)}
+                    >
+                      {mood.icon}
+                      <Text style={[
+                        styles.moodLabel, 
+                        { color: colors.textSecondary },
+                        selectedMood === mood.id && { color: mood.color, fontWeight: '600' }
+                      ]}>
+                        {mood.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
               </View>
-              <View style={styles.planItem}>
-                <Dumbbell size={16} color={colors.success[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.workout}</Text>
-              </View>
-              <View style={styles.planItem}>
-                <Calendar size={16} color={colors.accent[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.coaching}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.progressContainer}>
-              <View style={styles.progressHeader}>
-                <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>Daily Progress</Text>
-                <Text style={[styles.progressValue, { color: colors.text }]}>{todaysPlan.progress}%</Text>
-              </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
-                <View style={[
-                  styles.progressFill, 
-                  { backgroundColor: colors.primary[500], width: `${todaysPlan.progress}%` }
-                ]} />
-              </View>
-            </View>
+            </EnhancedCard>
           </Animated.View>
 
           {/* Progress Overview */}
-          <Animated.View 
-            entering={FadeInUp.delay(500).duration(500)}
-            style={[styles.progressOverviewCard, { backgroundColor: colors.background }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Progress Overview</Text>
-            <View style={styles.statsGrid}>
-              {progressStats.map((stat, index) => (
-                <Animated.View
-                  key={stat.label}
-                  entering={FadeInRight.delay(600 + index * 100).duration(500)}
-                  style={[styles.statItem, { backgroundColor: colors.neutral[50] }]}
-                >
-                  <View style={styles.statIcon}>
-                    {stat.icon}
-                  </View>
-                  <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
-                </Animated.View>
-              ))}
-            </View>
+          <Animated.View entering={FadeInUp.delay(600).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.progressOverviewCard}>
+              <Text style={[styles.cardTitle, { color: colors.text }]}>Your Progress</Text>
+              <View style={styles.statsGrid}>
+                {progressStats.map((stat, index) => (
+                  <Animated.View
+                    key={stat.label}
+                    entering={FadeInRight.delay(700 + index * 150).duration(600)}
+                    style={[styles.statItem, { backgroundColor: colors.neutral[25] }]}
+                  >
+                    <View style={styles.statHeader}>
+                      <View style={[styles.statIconContainer, { backgroundColor: `${stat.color}15` }]}>
+                        {stat.icon}
+                      </View>
+                      <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
+                    </View>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
+                    <ProgressIndicator
+                      progress={stat.progress}
+                      size="sm"
+                      color={stat.color}
+                      showLabel={false}
+                      style={styles.statProgress}
+                    />
+                  </Animated.View>
+                ))}
+              </View>
+            </EnhancedCard>
           </Animated.View>
 
           {/* Quick Actions */}
-          <Animated.View 
-            entering={FadeInUp.delay(600).duration(500)}
-            style={styles.quickActionsContainer}
-          >
+          <Animated.View entering={FadeInUp.delay(800).duration(600)} style={styles.quickActionsContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
             <View style={styles.quickActionsGrid}>
               {quickActions.map((action, index) => (
                 <Animated.View
                   key={action.id}
-                  entering={FadeInUp.delay(700 + index * 100).duration(500)}
+                  entering={FadeInUp.delay(900 + index * 100).duration(600)}
                   style={[styles.quickActionItem, { width: (screenWidth - 60) / 2 }]}
                 >
-                  <TouchableOpacity
-                    style={[styles.quickActionButton, { backgroundColor: action.color }]}
-                    activeOpacity={0.8}
+                  <EnhancedCard
+                    variant="glass"
+                    interactive
+                    glowEffect
+                    onPress={() => handleQuickAction(action.id)}
+                    style={styles.quickActionCard}
                   >
-                    {action.icon}
-                    <Text style={styles.quickActionText}>{action.title}</Text>
-                  </TouchableOpacity>
+                    <View style={[styles.quickActionBackground, { 
+                      background: `linear-gradient(135deg, ${action.gradient[0]}, ${action.gradient[1]})`,
+                      backgroundColor: action.gradient[0],
+                    }]}>
+                      <View style={styles.quickActionHeader}>
+                        <View style={styles.quickActionIcon}>
+                          {action.icon}
+                        </View>
+                        <Text style={styles.quickActionStats}>{action.stats}</Text>
+                      </View>
+                      <View style={styles.quickActionContent}>
+                        <Text style={styles.quickActionTitle}>{action.title}</Text>
+                        <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
+                      </View>
+                    </View>
+                  </EnhancedCard>
                 </Animated.View>
               ))}
             </View>
           </Animated.View>
 
-          {/* Daily Tip */}
-          <Animated.View 
-            entering={FadeInUp.delay(800).duration(500)}
-            style={[styles.dailyTipCard, { backgroundColor: colors.warning[50] }]}
-          >
-            <View style={styles.tipHeader}>
-              <View style={[styles.tipIcon, { backgroundColor: colors.warning[500] }]}>
-                <Coffee size={20} color="white" />
-              </View>
-              <Text style={[styles.tipTitle, { color: colors.warning[700] }]}>Daily Tip</Text>
+          {/* Featured Courses */}
+          <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.featuredSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Continue Learning</Text>
+              <TouchableOpacity onPress={() => router.push('/courses')}>
+                <Text style={[styles.seeAllText, { color: colors.primary[500] }]}>See All</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={[styles.tipText, { color: colors.warning[600] }]}>{dailyTip}</Text>
-            <TouchableOpacity style={styles.saveButton}>
-              <Heart size={16} color={colors.warning[500]} />
-              <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save to Journal</Text>
-            </TouchableOpacity>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+            >
+              {featuredCourses.map((course, index) => (
+                <Animated.View
+                  key={course.id}
+                  entering={FadeInRight.delay(1100 + index * 200).duration(600)}
+                  style={styles.featuredCourseCard}
+                >
+                  <EnhancedCard
+                    variant="elevated"
+                    interactive
+                    glowEffect
+                    onPress={() => {}}
+                    style={styles.courseCard}
+                  >
+                    <View style={styles.courseImageContainer}>
+                      <View 
+                        style={[
+                          styles.courseImage,
+                          { backgroundColor: colors.neutral[200] }
+                        ]}
+                      />
+                      <View style={styles.courseOverlay}>
+                        <View style={[styles.playButton, { backgroundColor: colors.primary[500] }]}>
+                          <Play size={16} color="white" />
+                        </View>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.courseContent}>
+                      <Text style={[styles.courseTitle, { color: colors.text }]} numberOfLines={2}>
+                        {course.title}
+                      </Text>
+                      <Text style={[styles.courseInstructor, { color: colors.textSecondary }]}>
+                        {course.instructor}
+                      </Text>
+                      
+                      <View style={styles.courseStats}>
+                        <View style={styles.courseStat}>
+                          <Star size={12} color={colors.warning[500]} fill={colors.warning[500]} />
+                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                            {course.rating}
+                          </Text>
+                        </View>
+                        <View style={styles.courseStat}>
+                          <Users size={12} color={colors.neutral[500]} />
+                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                            {course.students}
+                          </Text>
+                        </View>
+                      </View>
+                      
+                      <ProgressIndicator
+                        progress={course.progress}
+                        size="sm"
+                        showLabel
+                        label={`${course.progress}% complete`}
+                        style={styles.courseProgress}
+                      />
+                    </View>
+                  </EnhancedCard>
+                </Animated.View>
+              ))}
+            </ScrollView>
           </Animated.View>
 
-          {/* Resume Last Activity */}
-          <Animated.View 
-            entering={FadeInUp.delay(900).duration(500)}
-            style={[styles.resumeCard, { backgroundColor: colors.background }]}
-          >
-            <View style={styles.resumeContent}>
-              <View style={styles.resumeInfo}>
-                <Text style={[styles.resumeTitle, { color: colors.text }]}>Continue Learning</Text>
-                <Text style={[styles.resumeSubtitle, { color: colors.textSecondary }]}>
-                  React Native Advanced - Lesson 8
-                </Text>
-                <Text style={[styles.resumeProgress, { color: colors.primary[500] }]}>
-                  12 minutes left
-                </Text>
+          {/* Daily Tip */}
+          <Animated.View entering={FadeInUp.delay(1200).duration(600)}>
+            <GlassCard style={styles.dailyTipCard}>
+              <View style={styles.tipHeader}>
+                <View style={[styles.tipIcon, { backgroundColor: colors.warning[500] }]}>
+                  <Coffee size={24} color="white" />
+                </View>
+                <Text style={[styles.tipTitle, { color: colors.text }]}>Daily Tip</Text>
               </View>
-              <Button
-                title="Resume"
-                variant="primary"
-                size="small"
-                icon={<Play size={16} color="white" />}
-                iconPosition="left"
-                onPress={() => {}}
-                style={styles.resumeButton}
-              />
-            </View>
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>
+                Focus on one skill at a time. Mastery comes from depth, not breadth.
+              </Text>
+              <TouchableOpacity style={styles.saveButton}>
+                <Heart size={16} color={colors.warning[500]} />
+                <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save to Journal</Text>
+              </TouchableOpacity>
+            </GlassCard>
           </Animated.View>
 
           {/* Bottom Spacing */}
@@ -325,53 +455,76 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   greeting: {
     fontSize: 16,
+    fontWeight: '500',
   },
   userName: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
+    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   notificationBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     width: 8,
     height: 8,
     borderRadius: 4,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 120,
+  },
+  aiSuggestionBanner: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  aiSuggestionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  aiIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  aiTextContent: {
+    flex: 1,
+  },
+  aiSuggestionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  aiSuggestionText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   checkInCard: {
     marginHorizontal: 20,
-    marginVertical: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 24,
   },
   checkInTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 20,
     textAlign: 'center',
   },
   moodSelector: {
@@ -380,151 +533,66 @@ const styles = StyleSheet.create({
   },
   moodOption: {
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'transparent',
-    minWidth: 80,
+    minWidth: 90,
   },
   moodLabel: {
-    fontSize: 12,
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  aiSuggestionBanner: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  aiSuggestionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  aiIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  aiTextContent: {
-    flex: 1,
-  },
-  aiSuggestionTitle: {
     fontSize: 14,
+    marginTop: 12,
     fontWeight: '600',
-    marginBottom: 2,
-  },
-  aiSuggestionText: {
-    fontSize: 14,
-  },
-  aiActionButton: {
-    marginLeft: 12,
-  },
-  todaysPlanCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  planItems: {
-    marginBottom: 20,
-  },
-  planItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  planItemText: {
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 14,
-  },
-  progressValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
   },
   progressOverviewCard: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 24,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 20,
   },
   statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
   },
   statItem: {
     flex: 1,
-    alignItems: 'center',
     padding: 16,
     borderRadius: 12,
     marginHorizontal: 4,
   },
-  statIcon: {
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  statIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
+    marginBottom: 12,
+  },
+  statProgress: {
+    marginTop: 8,
   },
   quickActionsContainer: {
     marginHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     marginBottom: 16,
   },
@@ -534,43 +602,146 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   quickActionItem: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  quickActionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
+  quickActionCard: {
+    height: 140,
+  },
+  quickActionBackground: {
+    flex: 1,
     borderRadius: 12,
+    padding: 16,
+    justifyContent: 'space-between',
   },
-  quickActionText: {
+  quickActionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  quickActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quickActionStats: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  quickActionContent: {
+    marginTop: 8,
+  },
+  quickActionTitle: {
     color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  quickActionSubtitle: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+  },
+  featuredSection: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  seeAllText: {
     fontSize: 14,
     fontWeight: '600',
-    marginLeft: 8,
+  },
+  featuredList: {
+    paddingHorizontal: 20,
+  },
+  featuredCourseCard: {
+    width: 280,
+    marginRight: 16,
+  },
+  courseCard: {
+    padding: 0,
+    overflow: 'hidden',
+  },
+  courseImageContainer: {
+    position: 'relative',
+    height: 120,
+  },
+  courseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  courseOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  courseContent: {
+    padding: 16,
+  },
+  courseTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  courseInstructor: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  courseStats: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  courseStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  courseStatText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  courseProgress: {
+    marginTop: 8,
   },
   dailyTipCard: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
+    marginBottom: 24,
   },
   tipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tipIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   tipTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
   },
   tipText: {
     fontSize: 16,
@@ -584,45 +755,10 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  resumeCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  resumeContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  resumeInfo: {
-    flex: 1,
-  },
-  resumeTitle: {
-    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  resumeSubtitle: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  resumeProgress: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  resumeButton: {
-    marginLeft: 16,
+    marginLeft: 8,
   },
   bottomSpacing: {
-    height: 20,
+    height: 40,
   },
 });
