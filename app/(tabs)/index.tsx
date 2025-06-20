@@ -1,30 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { 
-  Bell, 
-  Search, 
-  BookOpen, 
-  Play, 
-  TrendingUp, 
-  Target, 
-  Calendar,
-  Zap,
-  Award,
-  Clock,
-  ChevronRight,
-  Smile,
-  Meh,
-  Frown,
-  Heart,
-  Coffee,
-  Dumbbell,
-  Sparkles,
-  ArrowRight,
-  Users,
-  Star
-} from 'lucide-react-native';
+import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3 } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
@@ -33,7 +11,11 @@ import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { Button } from '@/components/ui/Button';
-import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown } from 'react-native-reanimated';
+import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashboard';
+import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
+import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
+import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
+import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -42,9 +24,66 @@ export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [userActivity, setUserActivity] = useState({
+    lastActive: new Date(),
+    sessionsToday: 3,
+    totalTime: 145, // minutes
+    streak: 7,
+  });
+  
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
+
+  // Update time every minute for dynamic greetings
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Dynamic greeting based on time
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // Personalized insights based on user activity
+  const getPersonalizedInsight = () => {
+    const { streak, sessionsToday, totalTime } = userActivity;
+    
+    if (streak >= 7) {
+      return {
+        type: 'achievement',
+        title: 'Amazing streak!',
+        message: `You're on a ${streak}-day learning streak. Keep the momentum going!`,
+        icon: <Flame size={20} color={colors.warning[500]} />,
+        color: colors.warning[500],
+      };
+    }
+    
+    if (sessionsToday >= 3) {
+      return {
+        type: 'progress',
+        title: 'Productive day!',
+        message: `${sessionsToday} sessions completed today. You're crushing your goals!`,
+        icon: <CheckCircle size={20} color={colors.success[500]} />,
+        color: colors.success[500],
+      };
+    }
+    
+    return {
+      type: 'motivation',
+      title: 'Ready to learn?',
+      message: 'Start with a quick 10-minute session to build momentum.',
+      icon: <Brain size={20} color={colors.primary[500]} />,
+      color: colors.primary[500],
+    };
+  };
+
+  const personalizedInsight = getPersonalizedInsight();
 
   const todaysPlan = {
     course: 'React Native Advanced',
@@ -55,46 +94,51 @@ export default function HomeScreen() {
 
   const quickActions = [
     { 
-      id: 'workout', 
-      title: 'Start Workout', 
-      subtitle: 'Begin your fitness journey',
-      icon: <Dumbbell size={24} color="white" />, 
-      gradient: ['#10B981', '#22C55E'],
-      stats: '30 min',
-    },
-    { 
-      id: 'learning', 
+      id: 'continue-learning', 
       title: 'Continue Learning', 
       subtitle: 'Pick up where you left off',
       icon: <BookOpen size={24} color="white" />, 
       gradient: ['#3B82F6', '#06B6D4'],
-      stats: '12 lessons',
+      stats: '12 min left',
+      priority: 'high',
     },
     { 
-      id: 'meeting', 
-      title: 'Join Meeting', 
-      subtitle: 'Connect with your coach',
-      icon: <Calendar size={24} color="white" />, 
-      gradient: ['#8B5CF6', '#EC4899'],
-      stats: 'In 2 hours',
+      id: 'daily-challenge', 
+      title: 'Daily Challenge', 
+      subtitle: 'Complete today\'s goal',
+      icon: <Target size={24} color="white" />, 
+      gradient: ['#10B981', '#22C55E'],
+      stats: '2/3 done',
+      priority: 'high',
     },
     { 
-      id: 'ai', 
-      title: 'Ask AI', 
-      subtitle: 'Get personalized guidance',
-      icon: <Zap size={24} color="white" />, 
+      id: 'workout', 
+      title: 'Quick Workout', 
+      subtitle: 'Boost your energy',
+      icon: <Dumbbell size={24} color="white" />, 
       gradient: ['#F59E0B', '#EF4444'],
+      stats: '15 min',
+      priority: 'medium',
+    },
+    { 
+      id: 'ai-tutor', 
+      title: 'AI Tutor', 
+      subtitle: 'Get instant help',
+      icon: <Zap size={24} color="white" />, 
+      gradient: ['#8B5CF6', '#EC4899'],
       stats: 'Available',
+      priority: 'medium',
     },
   ];
 
   const progressStats = [
     { 
       label: 'Learning Streak', 
-      value: '7 days', 
-      icon: <TrendingUp size={20} color={colors.success[500]} />, 
-      color: colors.success[500],
-      progress: 70,
+      value: `${userActivity.streak} days`, 
+      icon: <Flame size={20} color={colors.warning[500]} />, 
+      color: colors.warning[500],
+      progress: Math.min((userActivity.streak / 30) * 100, 100),
+      trend: '+2 from last week',
     },
     { 
       label: 'Weekly Goals', 
@@ -102,20 +146,23 @@ export default function HomeScreen() {
       icon: <Target size={20} color={colors.primary[500]} />, 
       color: colors.primary[500],
       progress: 75,
+      trend: 'On track',
     },
     { 
-      label: 'Completed', 
-      value: '85%', 
-      icon: <Award size={20} color={colors.warning[500]} />, 
-      color: colors.warning[500],
+      label: 'Focus Time', 
+      value: `${Math.floor(userActivity.totalTime / 60)}h ${userActivity.totalTime % 60}m`, 
+      icon: <Clock size={20} color={colors.success[500]} />, 
+      color: colors.success[500],
       progress: 85,
+      trend: '+30min today',
     },
   ];
 
   const moodOptions = [
-    { id: 'happy', icon: <Smile size={28} color={colors.success[500]} />, label: 'Great', color: colors.success[500] },
-    { id: 'neutral', icon: <Meh size={28} color={colors.warning[500]} />, label: 'Okay', color: colors.warning[500] },
-    { id: 'sad', icon: <Frown size={28} color={colors.error[500]} />, label: 'Tough', color: colors.error[500] },
+    { id: 'energized', icon: <Smile size={28} color={colors.success[500]} />, label: 'Energized', color: colors.success[500] },
+    { id: 'focused', icon: <Brain size={28} color={colors.primary[500]} />, label: 'Focused', color: colors.primary[500] },
+    { id: 'relaxed', icon: <Meh size={28} color={colors.warning[500]} />, label: 'Relaxed', color: colors.warning[500] },
+    { id: 'tired', icon: <Frown size={28} color={colors.neutral[500]} />, label: 'Tired', color: colors.neutral[500] },
   ];
 
   const featuredCourses = [
@@ -127,6 +174,8 @@ export default function HomeScreen() {
       rating: 4.8,
       students: 1234,
       image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+      timeLeft: '2h 15m',
+      difficulty: 'Advanced',
     },
     {
       id: '2',
@@ -136,6 +185,8 @@ export default function HomeScreen() {
       rating: 4.9,
       students: 856,
       image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+      timeLeft: '4h 30m',
+      difficulty: 'Intermediate',
     },
   ];
 
@@ -145,20 +196,21 @@ export default function HomeScreen() {
 
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
+    // Here you would typically save this to user preferences/analytics
   };
 
   const handleQuickAction = (actionId: string) => {
     switch (actionId) {
-      case 'workout':
-        // Navigate to workout
-        break;
-      case 'learning':
+      case 'continue-learning':
         router.push('/courses');
         break;
-      case 'meeting':
-        router.push('/coaching');
+      case 'daily-challenge':
+        // Navigate to challenges
         break;
-      case 'ai':
+      case 'workout':
+        // Navigate to fitness
+        break;
+      case 'ai-tutor':
         router.push('/ai-assistant');
         break;
     }
@@ -167,14 +219,19 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
-        {/* Header */}
+        {/* Enhanced Header with Dynamic Greeting */}
         <Animated.View 
           entering={FadeInUp.duration(600)}
           style={styles.header}
         >
           <View>
-            <Text style={[styles.greeting, { color: colors.textSecondary }]}>Good morning,</Text>
+            <Text style={[styles.greeting, { color: colors.textSecondary }]}>
+              {getGreeting()},
+            </Text>
             <Text style={[styles.userName, { color: colors.text }]}>Alex</Text>
+            <Text style={[styles.userStatus, { color: colors.textSecondary }]}>
+              Ready to learn something new?
+            </Text>
           </View>
           
           <View style={styles.headerActions}>
@@ -191,7 +248,7 @@ export default function HomeScreen() {
         {/* Enhanced Search Bar */}
         <Animated.View entering={FadeInUp.delay(200).duration(600)}>
           <EnhancedSearchBar
-            placeholder="Search courses, topics, instructors..."
+            placeholder="What would you like to learn today?"
             value={searchQuery}
             onChangeText={setSearchQuery}
             variant="prominent"
@@ -206,41 +263,96 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* AI Suggestion Banner */}
-          {aiSuggestion && (
-            <Animated.View entering={SlideInRight.delay(300).duration(700)}>
-              <GlassCard
-                style={styles.aiSuggestionBanner}
-                interactive
-                onPress={() => router.push('/ai-assistant')}
-              >
-                <View style={styles.aiSuggestionContent}>
-                  <View style={[styles.aiIcon, { backgroundColor: colors.primary[500] }]}>
-                    <Sparkles size={24} color="white" />
-                  </View>
-                  <View style={styles.aiTextContent}>
-                    <Text style={[styles.aiSuggestionTitle, { color: colors.primary[700] }]}>
-                      AI Insight
-                    </Text>
-                    <Text style={[styles.aiSuggestionText, { color: colors.primary[600] }]}>
-                      {aiSuggestion}
-                    </Text>
-                  </View>
-                  <ArrowRight size={20} color={colors.primary[500]} />
+          {/* Personalized Insight Banner */}
+          <Animated.View entering={SlideInRight.delay(300).duration(700)}>
+            <GlassCard
+              style={[styles.insightBanner, { backgroundColor: `${personalizedInsight.color}15` }]}
+              interactive
+              onPress={() => {}}
+            >
+              <View style={styles.insightContent}>
+                <View style={[styles.insightIcon, { backgroundColor: personalizedInsight.color }]}>
+                  {personalizedInsight.icon}
                 </View>
-              </GlassCard>
-            </Animated.View>
-          )}
+                <View style={styles.insightTextContent}>
+                  <Text style={[styles.insightTitle, { color: personalizedInsight.color }]}>
+                    {personalizedInsight.title}
+                  </Text>
+                  <Text style={[styles.insightText, { color: colors.textSecondary }]}>
+                    {personalizedInsight.message}
+                  </Text>
+                </View>
+                <ArrowRight size={20} color={personalizedInsight.color} />
+              </View>
+            </GlassCard>
+          </Animated.View>
 
-          {/* Daily Check-in */}
+          {/* Learning Streak Widget */}
           <Animated.View entering={FadeInUp.delay(400).duration(600)}>
-            <EnhancedCard variant="elevated" style={styles.checkInCard} glowEffect>
+            <LearningStreakWidget 
+              streak={userActivity.streak}
+              todaySessions={userActivity.sessionsToday}
+              totalTime={userActivity.totalTime}
+            />
+          </Animated.View>
+
+          {/* Enhanced Progress Overview */}
+          <Animated.View entering={FadeInUp.delay(600).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.progressOverviewCard}>
+              <View style={styles.progressHeader}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Your Progress</Text>
+                <TouchableOpacity onPress={() => router.push('/analytics')}>
+                  <BarChart3 size={20} color={colors.primary[500]} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.statsGrid}>
+                {progressStats.map((stat, index) => (
+                  <Animated.View
+                    key={stat.label}
+                    entering={FadeInRight.delay(700 + index * 150).duration(600)}
+                    style={[styles.statItem, { backgroundColor: colors.neutral[25] }]}
+                  >
+                    <View style={styles.statHeader}>
+                      <View style={[styles.statIconContainer, { backgroundColor: `${stat.color}15` }]}>
+                        {stat.icon}
+                      </View>
+                      <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
+                    </View>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
+                    <ProgressIndicator
+                      progress={stat.progress}
+                      size="sm"
+                      color={stat.color}
+                      showLabel={false}
+                      style={styles.statProgress}
+                    />
+                    <Text style={[styles.statTrend, { color: stat.color }]}>{stat.trend}</Text>
+                  </Animated.View>
+                ))}
+              </View>
+            </EnhancedCard>
+          </Animated.View>
+
+          {/* Smart Quick Actions */}
+          <Animated.View entering={FadeInUp.delay(800).duration(600)}>
+            <QuickActionsGrid 
+              actions={quickActions}
+              onActionPress={handleQuickAction}
+            />
+          </Animated.View>
+
+          {/* Mood Check-in */}
+          <Animated.View entering={FadeInUp.delay(1000).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.checkInCard}>
               <Text style={[styles.checkInTitle, { color: colors.text }]}>How are you feeling today?</Text>
+              <Text style={[styles.checkInSubtitle, { color: colors.textSecondary }]}>
+                Help us personalize your learning experience
+              </Text>
               <View style={styles.moodSelector}>
                 {moodOptions.map((mood, index) => (
                   <Animated.View
                     key={mood.id}
-                    entering={FadeInUp.delay(500 + index * 100).duration(500)}
+                    entering={FadeInUp.delay(1100 + index * 100).duration(500)}
                   >
                     <TouchableOpacity
                       style={[
@@ -269,77 +381,17 @@ export default function HomeScreen() {
             </EnhancedCard>
           </Animated.View>
 
-          {/* Progress Overview */}
-          <Animated.View entering={FadeInUp.delay(600).duration(600)}>
-            <EnhancedCard variant="elevated" style={styles.progressOverviewCard}>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>Your Progress</Text>
-              <View style={styles.statsGrid}>
-                {progressStats.map((stat, index) => (
-                  <Animated.View
-                    key={stat.label}
-                    entering={FadeInRight.delay(700 + index * 150).duration(600)}
-                    style={[styles.statItem, { backgroundColor: colors.neutral[25] }]}
-                  >
-                    <View style={styles.statHeader}>
-                      <View style={[styles.statIconContainer, { backgroundColor: `${stat.color}15` }]}>
-                        {stat.icon}
-                      </View>
-                      <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
-                    </View>
-                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
-                    <ProgressIndicator
-                      progress={stat.progress}
-                      size="sm"
-                      color={stat.color}
-                      showLabel={false}
-                      style={styles.statProgress}
-                    />
-                  </Animated.View>
-                ))}
-              </View>
-            </EnhancedCard>
+          {/* Smart Recommendations */}
+          <Animated.View entering={FadeInUp.delay(1200).duration(600)}>
+            <SmartRecommendations 
+              userMood={selectedMood}
+              currentStreak={userActivity.streak}
+              timeOfDay={currentTime.getHours()}
+            />
           </Animated.View>
 
-          {/* Quick Actions */}
-          <Animated.View entering={FadeInUp.delay(800).duration(600)} style={styles.quickActionsContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
-            <View style={styles.quickActionsGrid}>
-              {quickActions.map((action, index) => (
-                <Animated.View
-                  key={action.id}
-                  entering={FadeInUp.delay(900 + index * 100).duration(600)}
-                  style={[styles.quickActionItem, { width: (screenWidth - 60) / 2 }]}
-                >
-                  <EnhancedCard
-                    variant="glass"
-                    interactive
-                    glowEffect
-                    onPress={() => handleQuickAction(action.id)}
-                    style={styles.quickActionCard}
-                  >
-                    <View style={[styles.quickActionBackground, { 
-                      background: `linear-gradient(135deg, ${action.gradient[0]}, ${action.gradient[1]})`,
-                      backgroundColor: action.gradient[0],
-                    }]}>
-                      <View style={styles.quickActionHeader}>
-                        <View style={styles.quickActionIcon}>
-                          {action.icon}
-                        </View>
-                        <Text style={styles.quickActionStats}>{action.stats}</Text>
-                      </View>
-                      <View style={styles.quickActionContent}>
-                        <Text style={styles.quickActionTitle}>{action.title}</Text>
-                        <Text style={styles.quickActionSubtitle}>{action.subtitle}</Text>
-                      </View>
-                    </View>
-                  </EnhancedCard>
-                </Animated.View>
-              ))}
-            </View>
-          </Animated.View>
-
-          {/* Featured Courses */}
-          <Animated.View entering={FadeInUp.delay(1000).duration(600)} style={styles.featuredSection}>
+          {/* Enhanced Featured Courses */}
+          <Animated.View entering={FadeInUp.delay(1400).duration(600)} style={styles.featuredSection}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Continue Learning</Text>
               <TouchableOpacity onPress={() => router.push('/courses')}>
@@ -355,7 +407,7 @@ export default function HomeScreen() {
               {featuredCourses.map((course, index) => (
                 <Animated.View
                   key={course.id}
-                  entering={FadeInRight.delay(1100 + index * 200).duration(600)}
+                  entering={FadeInRight.delay(1500 + index * 200).duration(600)}
                   style={styles.featuredCourseCard}
                 >
                   <EnhancedCard
@@ -377,6 +429,9 @@ export default function HomeScreen() {
                           <Play size={16} color="white" />
                         </View>
                       </View>
+                      <View style={[styles.difficultyBadge, { backgroundColor: colors.warning[500] }]}>
+                        <Text style={styles.difficultyText}>{course.difficulty}</Text>
+                      </View>
                     </View>
                     
                     <View style={styles.courseContent}>
@@ -395,9 +450,9 @@ export default function HomeScreen() {
                           </Text>
                         </View>
                         <View style={styles.courseStat}>
-                          <Users size={12} color={colors.neutral[500]} />
+                          <Clock size={12} color={colors.neutral[500]} />
                           <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
-                            {course.students}
+                            {course.timeLeft}
                           </Text>
                         </View>
                       </View>
@@ -416,22 +471,32 @@ export default function HomeScreen() {
             </ScrollView>
           </Animated.View>
 
-          {/* Daily Tip */}
-          <Animated.View entering={FadeInUp.delay(1200).duration(600)}>
+          {/* Daily Tip with Enhanced Interaction */}
+          <Animated.View entering={FadeInUp.delay(1600).duration(600)}>
             <GlassCard style={styles.dailyTipCard}>
               <View style={styles.tipHeader}>
                 <View style={[styles.tipIcon, { backgroundColor: colors.warning[500] }]}>
                   <Coffee size={24} color="white" />
                 </View>
-                <Text style={[styles.tipTitle, { color: colors.text }]}>Daily Tip</Text>
+                <View>
+                  <Text style={[styles.tipTitle, { color: colors.text }]}>Daily Wisdom</Text>
+                  <Text style={[styles.tipTime, { color: colors.textSecondary }]}>
+                    {currentTime.toLocaleDateString()}
+                  </Text>
+                </View>
               </View>
               <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                Focus on one skill at a time. Mastery comes from depth, not breadth.
+                "The expert in anything was once a beginner. Focus on progress, not perfection."
               </Text>
-              <TouchableOpacity style={styles.saveButton}>
-                <Heart size={16} color={colors.warning[500]} />
-                <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save to Journal</Text>
-              </TouchableOpacity>
+              <View style={styles.tipActions}>
+                <TouchableOpacity style={styles.saveButton}>
+                  <Heart size={16} color={colors.warning[500]} />
+                  <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.shareButton}>
+                  <Text style={[styles.shareButtonText, { color: colors.primary[500] }]}>Share</Text>
+                </TouchableOpacity>
+              </View>
             </GlassCard>
           </Animated.View>
 
@@ -453,7 +518,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
@@ -464,6 +529,10 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 32,
     fontWeight: '800',
+    marginTop: 4,
+  },
+  userStatus: {
+    fontSize: 14,
     marginTop: 4,
   },
   headerActions: {
@@ -489,15 +558,15 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 120,
   },
-  aiSuggestionBanner: {
+  insightBanner: {
     marginHorizontal: 20,
     marginBottom: 20,
   },
-  aiSuggestionContent: {
+  insightContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  aiIcon: {
+  insightIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -505,53 +574,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
-  aiTextContent: {
+  insightTextContent: {
     flex: 1,
   },
-  aiSuggestionTitle: {
+  insightTitle: {
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
-  aiSuggestionText: {
+  insightText: {
     fontSize: 14,
     lineHeight: 20,
-  },
-  checkInCard: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  checkInTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  moodSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  moodOption: {
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    minWidth: 90,
-  },
-  moodLabel: {
-    fontSize: 14,
-    marginTop: 12,
-    fontWeight: '600',
   },
   progressOverviewCard: {
     marginHorizontal: 20,
     marginBottom: 24,
   },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   cardTitle: {
     fontSize: 22,
     fontWeight: '700',
-    marginBottom: 20,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -577,7 +624,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
   statLabel: {
@@ -586,63 +633,43 @@ const styles = StyleSheet.create({
   },
   statProgress: {
     marginTop: 8,
+    marginBottom: 8,
   },
-  quickActionsContainer: {
+  statTrend: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  checkInCard: {
     marginHorizontal: 20,
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 22,
+  checkInTitle: {
+    fontSize: 20,
     fontWeight: '700',
-    marginBottom: 16,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  quickActionsGrid: {
+  checkInSubtitle: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  moodSelector: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
-  quickActionItem: {
-    marginBottom: 16,
-  },
-  quickActionCard: {
-    height: 140,
-  },
-  quickActionBackground: {
-    flex: 1,
-    borderRadius: 12,
-    padding: 16,
-    justifyContent: 'space-between',
-  },
-  quickActionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  quickActionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
+  moodOption: {
     alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    minWidth: 80,
   },
-  quickActionStats: {
-    color: 'rgba(255,255,255,0.9)',
+  moodLabel: {
     fontSize: 12,
-    fontWeight: '600',
-  },
-  quickActionContent: {
     marginTop: 8,
-  },
-  quickActionTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  quickActionSubtitle: {
-    color: 'rgba(255,255,255,0.8)',
-    fontSize: 12,
+    fontWeight: '600',
   },
   featuredSection: {
     marginBottom: 24,
@@ -653,6 +680,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
   },
   seeAllText: {
     fontSize: 14,
@@ -693,6 +724,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  difficultyBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  difficultyText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
   courseContent: {
     padding: 16,
@@ -743,20 +787,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  tipTime: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   tipText: {
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 16,
+    fontStyle: 'italic',
+  },
+  tipActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   saveButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
   },
   saveButtonText: {
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  shareButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  shareButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   bottomSpacing: {
     height: 40,
