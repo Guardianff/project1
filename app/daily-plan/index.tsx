@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Calendar, Clock, CheckSquare, BookOpen, Dumbbell, Briefcase, Coffee, Plus, ChevronRight, Edit3, Trash2, Bell, CircleCheck, Circle, MoreHorizontal } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, SquareCheck as CheckSquare, BookOpen, Dumbbell, Briefcase, Coffee, Plus, ChevronRight, CreditCard as Edit3, Trash2, Bell, CircleCheck, Circle, MoveHorizontal as MoreHorizontal } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';

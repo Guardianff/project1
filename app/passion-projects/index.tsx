@@ -95,7 +95,7 @@ export default function PassionProjectsScreen() {
     {
       id: '2',
       title: 'Podcast Series',
-      description: 'Create a 5-episode podcast on a topic you're passionate about',
+      description: 'Create a 5-episode podcast on a topic you\'re passionate about',
       category: 'music',
       difficulty: 'beginner',
       timeEstimate: '1-2 months',

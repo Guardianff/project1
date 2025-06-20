@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, Plus, Target, Calendar, TrendingUp, CheckCircle, Clock, Flag } from 'lucide-react-native';
+import { ArrowLeft, Plus, Target, Calendar, TrendingUp, CircleCheck as CheckCircle, Clock, Flag } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
