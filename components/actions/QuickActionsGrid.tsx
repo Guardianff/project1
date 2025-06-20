@@ -30,7 +30,7 @@ interface QuickAction {
   gradient: string[];
   stats?: string;
   priority?: 'high' | 'medium' | 'low';
-  action: () => void;
+  action?: () => void;
 }
 
 interface QuickActionsGridProps {
@@ -294,10 +294,13 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
     // Call the custom handler if provided
     if (onActionPress) {
       onActionPress(action.id);
+      return;
     }
     
-    // Execute the action
-    action.action();
+    // Execute the action only if it exists
+    if (action.action && typeof action.action === 'function') {
+      action.action();
+    }
   };
 
   const renderQuickAction = (action: QuickAction, index: number) => (
