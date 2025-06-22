@@ -18,6 +18,7 @@ import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { BoltBadge } from '@/components/ui/BoltBadge';
 import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
@@ -502,6 +503,13 @@ export default function DailyPlanScreen() {
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
+        
+        {/* Bolt Badge */}
+        <BoltBadge 
+          position="bottom-right" 
+          variant={isDarkMode ? "white" : "black"}
+          size="small"
+        />
       </View>
     </SafeAreaView>
   );

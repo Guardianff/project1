@@ -16,6 +16,7 @@ import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { BoltBadge } from '@/components/ui/BoltBadge';
 import { upcomingCoachingSessions } from '@/data/mockData';
 
 export default function CoachingScreen() {
@@ -235,12 +236,14 @@ export default function CoachingScreen() {
               />
             </View>
           </View>
-          
-          {/* "Built on Bolt" badge */}
-          <View style={styles.boltBadgeContainer}>
-            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
-          </View>
         </ScrollView>
+        
+        {/* Bolt Badge */}
+        <BoltBadge 
+          position="bottom-right" 
+          variant={isDarkMode ? "white" : "black"}
+          size="small"
+        />
       </View>
     </SafeAreaView>
   );

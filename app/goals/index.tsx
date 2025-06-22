@@ -17,6 +17,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { BoltBadge } from '@/components/ui/BoltBadge';
 import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
@@ -97,15 +98,16 @@ export default function GoalsScreen() {
       'Create New Goal',
       'What type of goal would you like to create?',
       [
-        { text: 'Learning Goal', onPress: () => createGoal('learning') },
-        { text: 'Fitness Goal', onPress: () => createGoal('fitness') },
-        { text: 'Career Goal', onPress: () => createGoal('career') },
-        { text: 'Personal Goal', onPress: () => createGoal('personal') },
+        { text: 'Learning Goal', onPress: () => addNewGoal('learning') },
+        { text: 'Fitness Goal', onPress: () => addNewGoal('fitness') },
+        { text: 'Career Goal', onPress: () => addNewGoal('career') },
+        { text: 'Personal Goal', onPress: () => addNewGoal('personal') },
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   };
 
-  const createGoal = (category: string) => {
+  const addNewGoal = (category: string) => {
     // In a real app, this would open a goal creation form
     Alert.alert('Goal Creation', `Creating a new ${category} goal...`);
   };
@@ -294,6 +296,13 @@ export default function GoalsScreen() {
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
+        
+        {/* Bolt Badge */}
+        <BoltBadge 
+          position="bottom-right" 
+          variant={isDarkMode ? "white" : "black"}
+          size="small"
+        />
       </View>
     </SafeAreaView>
   );

@@ -22,6 +22,7 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { InteractiveCard } from '@/components/ui/InteractiveCard';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { Badge } from '@/components/ui/Badge';
+import { BoltBadge } from '@/components/ui/BoltBadge';
 import { categories, featuredCourses, recommendedCourses } from '@/data/mockData';
 import { Course } from '@/types/course';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
@@ -358,6 +359,13 @@ export default function CoursesScreen() {
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
+        
+        {/* Bolt Badge */}
+        <BoltBadge 
+          position="bottom-right" 
+          variant={isDarkMode ? "white" : "black"}
+          size="small"
+        />
       </View>
     </SafeAreaView>
   );
