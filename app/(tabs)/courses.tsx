@@ -146,11 +146,7 @@ export default function CoursesScreen() {
               Expand your skills with expert-led courses
             </Text>
           </View>
-          <TouchableOpacity onPress={handleCategoriesPress}>
-            <Text style={[styles.viewCategoriesText, { color: colors.primary[500] }]}>
-              Browse All
-            </Text>
-          </TouchableOpacity>
+          
         </Animated.View>
 
         {/* Enhanced Search Bar */}
