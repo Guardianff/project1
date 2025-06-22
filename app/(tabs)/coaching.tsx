@@ -237,13 +237,6 @@ export default function CoachingScreen() {
             </View>
           </View>
         </ScrollView>
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );
