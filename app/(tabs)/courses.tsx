@@ -146,7 +146,15 @@ export default function CoursesScreen() {
               Expand your skills with expert-led courses
             </Text>
           </View>
-          
+          <TouchableOpacity 
+            onPress={handleCategoriesPress}
+            style={[styles.browseAllButton, { backgroundColor: colors.primary[50] }]}
+          >
+            <Text style={[styles.viewCategoriesText, { color: colors.primary[500] }]}>
+              Browse All
+            </Text>
+            <LayoutGrid size={16} color={colors.primary[500]} style={styles.browseIcon} />
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Enhanced Search Bar */}
@@ -381,8 +389,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
+  browseAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginLeft: 8,
+  },
+  browseIcon: {
+    marginLeft: 6,
+  },
   viewCategoriesText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   content: {
