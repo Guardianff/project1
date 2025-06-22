@@ -20,6 +20,10 @@ export default function RootLayout() {
             <Stack.Screen name="categories" options={{ headerShown: false }} />
             <Stack.Screen name="categories/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="profile-integration" options={{ headerShown: false }} />
+            <Stack.Screen name="goals" options={{ headerShown: false }} />
+            <Stack.Screen name="fitness" options={{ headerShown: false }} />
+            <Stack.Screen name="passion-projects" options={{ headerShown: false }} />
+            <Stack.Screen name="daily-plan" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
           </Stack>
           <StatusBar style="auto" />

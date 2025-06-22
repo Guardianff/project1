@@ -1,32 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { 
-  Bell, 
-  Search, 
-  BookOpen, 
-  Play, 
-  TrendingUp, 
-  Target, 
-  Calendar,
-  Zap,
-  Award,
-  Clock,
-  ChevronRight,
-  Smile,
-  Meh,
-  Frown,
-  Heart,
-  Coffee,
-  Dumbbell
-} from 'lucide-react-native';
+import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3 } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
-import { SearchBar } from '@/components/ui/SearchBar';
+import { EnhancedSearchBar } from '@/components/ui/EnhancedSearchBar';
+import { EnhancedCard } from '@/components/ui/EnhancedCard';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
 import { Button } from '@/components/ui/Button';
-import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
+import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashboard';
+import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
+import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
+import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
+import { BoltBadge } from '@/components/ui/BoltBadge';
+import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -35,9 +25,66 @@ export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [userActivity, setUserActivity] = useState({
+    lastActive: new Date(),
+    sessionsToday: 3,
+    totalTime: 145, // minutes
+    streak: 7,
+  });
+  
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
+
+  // Update time every minute for dynamic greetings
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Dynamic greeting based on time
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // Personalized insights based on user activity
+  const getPersonalizedInsight = () => {
+    const { streak, sessionsToday, totalTime } = userActivity;
+    
+    if (streak >= 7) {
+      return {
+        type: 'achievement',
+        title: 'Amazing streak!',
+        message: `You're on a ${streak}-day learning streak. Keep the momentum going!`,
+        icon: <Flame size={20} color={colors.warning[500]} />,
+        color: colors.warning[500],
+      };
+    }
+    
+    if (sessionsToday >= 3) {
+      return {
+        type: 'progress',
+        title: 'Productive day!',
+        message: `${sessionsToday} sessions completed today. You're crushing your goals!`,
+        icon: <CheckCircle size={20} color={colors.success[500]} />,
+        color: colors.success[500],
+      };
+    }
+    
+    return {
+      type: 'motivation',
+      title: 'Ready to learn?',
+      message: 'Start with a quick 10-minute session to build momentum.',
+      icon: <Brain size={20} color={colors.primary[500]} />,
+      color: colors.primary[500],
+    };
+  };
+
+  const personalizedInsight = getPersonalizedInsight();
 
   const todaysPlan = {
     course: 'React Native Advanced',
@@ -47,25 +94,102 @@ export default function HomeScreen() {
   };
 
   const quickActions = [
-    { id: 'workout', title: 'Start Workout', icon: <Dumbbell size={20} color="white" />, color: '#10B981' },
-    { id: 'learning', title: 'Continue Learning', icon: <BookOpen size={20} color="white" />, color: '#3B82F6' },
-    { id: 'meeting', title: 'Join Meeting', icon: <Calendar size={20} color="white" />, color: '#8B5CF6' },
-    { id: 'ai', title: 'Ask AI', icon: <Zap size={20} color="white" />, color: '#F59E0B' },
+    { 
+      id: 'continue-learning', 
+      title: 'Continue Learning', 
+      subtitle: 'Pick up where you left off',
+      icon: <BookOpen size={24} color="white" />, 
+      gradient: ['#3B82F6', '#06B6D4'],
+      stats: '12 min left',
+      priority: 'high',
+    },
+    { 
+      id: 'daily-challenge', 
+      title: 'Daily Challenge', 
+      subtitle: 'Complete today\'s goal',
+      icon: <Target size={24} color="white" />, 
+      gradient: ['#10B981', '#22C55E'],
+      stats: '2/3 done',
+      priority: 'high',
+    },
+    { 
+      id: 'workout', 
+      title: 'Quick Workout', 
+      subtitle: 'Boost your energy',
+      icon: <Dumbbell size={24} color="white" />, 
+      gradient: ['#F59E0B', '#EF4444'],
+      stats: '15 min',
+      priority: 'medium',
+    },
+    { 
+      id: 'ai-tutor', 
+      title: 'AI Tutor', 
+      subtitle: 'Get instant help',
+      icon: <Zap size={24} color="white" />, 
+      gradient: ['#8B5CF6', '#EC4899'],
+      stats: 'Available',
+      priority: 'medium',
+    },
   ];
 
   const progressStats = [
-    { label: 'Streak', value: '7 days', icon: <TrendingUp size={16} color={colors.success[500]} />, color: colors.success[500] },
-    { label: 'Goals', value: '3/4', icon: <Target size={16} color={colors.primary[500]} />, color: colors.primary[500] },
-    { label: 'Completed', value: '85%', icon: <Award size={16} color={colors.warning[500]} />, color: colors.warning[500] },
+    { 
+      label: 'Learning Streak', 
+      value: `${userActivity.streak} days`, 
+      icon: <Flame size={20} color={colors.warning[500]} />, 
+      color: colors.warning[500],
+      progress: Math.min((userActivity.streak / 30) * 100, 100),
+      trend: '+2 from last week',
+    },
+    { 
+      label: 'Weekly Goals', 
+      value: '3/4', 
+      icon: <Target size={20} color={colors.primary[500]} />, 
+      color: colors.primary[500],
+      progress: 75,
+      trend: 'On track',
+    },
+    { 
+      label: 'Focus Time', 
+      value: `${Math.floor(userActivity.totalTime / 60)}h ${userActivity.totalTime % 60}m`, 
+      icon: <Clock size={20} color={colors.success[500]} />, 
+      color: colors.success[500],
+      progress: 85,
+      trend: '+30min today',
+    },
   ];
 
   const moodOptions = [
-    { id: 'happy', icon: <Smile size={24} color={colors.success[500]} />, label: 'Great' },
-    { id: 'neutral', icon: <Meh size={24} color={colors.warning[500]} />, label: 'Okay' },
-    { id: 'sad', icon: <Frown size={24} color={colors.error[500]} />, label: 'Tough' },
+    { id: 'energized', icon: <Smile size={28} color={colors.success[500]} />, label: 'Energized', color: colors.success[500] },
+    { id: 'focused', icon: <Brain size={28} color={colors.primary[500]} />, label: 'Focused', color: colors.primary[500] },
+    { id: 'relaxed', icon: <Meh size={28} color={colors.warning[500]} />, label: 'Relaxed', color: colors.warning[500] },
+    { id: 'tired', icon: <Frown size={28} color={colors.neutral[500]} />, label: 'Tired', color: colors.neutral[500] },
   ];
 
-  const dailyTip = "Focus on one skill at a time. Mastery comes from depth, not breadth.";
+  const featuredCourses = [
+    {
+      id: '1',
+      title: 'Advanced React Native',
+      instructor: 'Sarah Johnson',
+      progress: 65,
+      rating: 4.8,
+      students: 1234,
+      image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+      timeLeft: '2h 15m',
+      difficulty: 'Advanced',
+    },
+    {
+      id: '2',
+      title: 'UI/UX Design Mastery',
+      instructor: 'Michael Chen',
+      progress: 30,
+      rating: 4.9,
+      students: 856,
+      image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+      timeLeft: '4h 30m',
+      difficulty: 'Intermediate',
+    },
+  ];
 
   const handleNotificationPress = () => {
     router.push('/notifications');
@@ -73,19 +197,42 @@ export default function HomeScreen() {
 
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
+    // Here you would typically save this to user preferences/analytics
+  };
+
+  const handleQuickAction = (actionId: string) => {
+    switch (actionId) {
+      case 'continue-learning':
+        router.push('/courses');
+        break;
+      case 'daily-challenge':
+        // Navigate to challenges
+        break;
+      case 'workout':
+        // Navigate to fitness
+        break;
+      case 'ai-tutor':
+        router.push('/ai-assistant');
+        break;
+    }
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
-        {/* Header */}
+        {/* Enhanced Header with Dynamic Greeting */}
         <Animated.View 
-          entering={FadeInUp.duration(400)}
+          entering={FadeInUp.duration(600)}
           style={styles.header}
         >
           <View>
-            <Text style={[styles.greeting, { color: colors.textSecondary }]}>Good morning,</Text>
+            <Text style={[styles.greeting, { color: colors.textSecondary }]}>
+              {getGreeting()},
+            </Text>
             <Text style={[styles.userName, { color: colors.text }]}>Alex</Text>
+            <Text style={[styles.userStatus, { color: colors.textSecondary }]}>
+              Ready to learn something new?
+            </Text>
           </View>
           
           <View style={styles.headerActions}>
@@ -99,12 +246,17 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
         
-        {/* Search Bar */}
-        <Animated.View entering={FadeInUp.delay(100).duration(400)}>
-          <SearchBar
-            placeholder="Search courses, topics, instructors..."
+        {/* Enhanced Search Bar */}
+        <Animated.View entering={FadeInUp.delay(200).duration(600)}>
+          <EnhancedSearchBar
+            placeholder="What would you like to learn today?"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            variant="prominent"
+            showFilter
+            showVoice
+            onFilterPress={() => {}}
+            onVoicePress={() => {}}
           />
         </Animated.View>
         
@@ -112,202 +264,253 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Daily Check-in */}
-          <Animated.View 
-            entering={FadeInUp.delay(200).duration(500)}
-            style={[styles.checkInCard, { backgroundColor: colors.background }]}
-          >
-            <Text style={[styles.checkInTitle, { color: colors.text }]}>How are you feeling today?</Text>
-            <View style={styles.moodSelector}>
-              {moodOptions.map((mood) => (
-                <TouchableOpacity
-                  key={mood.id}
-                  style={[
-                    styles.moodOption,
-                    { backgroundColor: colors.neutral[50] },
-                    selectedMood === mood.id && { backgroundColor: colors.primary[50], borderColor: colors.primary[200] }
-                  ]}
-                  onPress={() => handleMoodSelect(mood.id)}
-                >
-                  {mood.icon}
-                  <Text style={[
-                    styles.moodLabel, 
-                    { color: colors.textSecondary },
-                    selectedMood === mood.id && { color: colors.primary[600] }
-                  ]}>
-                    {mood.label}
+          {/* Personalized Insight Banner */}
+          <Animated.View entering={SlideInRight.delay(300).duration(700)}>
+            <GlassCard
+              style={[styles.insightBanner, { backgroundColor: `${personalizedInsight.color}15` }]}
+              interactive
+              onPress={() => {}}
+            >
+              <View style={styles.insightContent}>
+                <View style={[styles.insightIcon, { backgroundColor: personalizedInsight.color }]}>
+                  {personalizedInsight.icon}
+                </View>
+                <View style={styles.insightTextContent}>
+                  <Text style={[styles.insightTitle, { color: personalizedInsight.color }]}>
+                    {personalizedInsight.title}
                   </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                  <Text style={[styles.insightText, { color: colors.textSecondary }]}>
+                    {personalizedInsight.message}
+                  </Text>
+                </View>
+                <ArrowRight size={20} color={personalizedInsight.color} />
+              </View>
+            </GlassCard>
           </Animated.View>
 
-          {/* AI Suggestion Banner */}
-          {aiSuggestion && (
-            <Animated.View 
-              entering={SlideInRight.delay(300).duration(500)}
-              style={[styles.aiSuggestionBanner, { backgroundColor: colors.primary[50] }]}
-            >
-              <View style={styles.aiSuggestionContent}>
-                <View style={[styles.aiIcon, { backgroundColor: colors.primary[500] }]}>
-                  <Zap size={20} color="white" />
-                </View>
-                <View style={styles.aiTextContent}>
-                  <Text style={[styles.aiSuggestionTitle, { color: colors.primary[700] }]}>
-                    AI Suggestion
-                  </Text>
-                  <Text style={[styles.aiSuggestionText, { color: colors.primary[600] }]}>
-                    {aiSuggestion}
-                  </Text>
-                </View>
-              </View>
-              <Button
-                title="Let's Go"
-                variant="primary"
-                size="small"
-                onPress={() => router.push('/ai-assistant')}
-                style={styles.aiActionButton}
-              />
-            </Animated.View>
-          )}
+          {/* Learning Streak Widget */}
+          <Animated.View entering={FadeInUp.delay(400).duration(600)}>
+            <LearningStreakWidget 
+              streak={userActivity.streak}
+              todaySessions={userActivity.sessionsToday}
+              totalTime={userActivity.totalTime}
+            />
+          </Animated.View>
 
-          {/* Today's Plan */}
-          <Animated.View 
-            entering={FadeInUp.delay(400).duration(500)}
-            style={[styles.todaysPlanCard, { backgroundColor: colors.background }]}
-          >
-            <View style={styles.cardHeader}>
-              <Text style={[styles.cardTitle, { color: colors.text }]}>Today's Plan</Text>
-              <TouchableOpacity>
-                <ChevronRight size={20} color={colors.neutral[400]} />
+          {/* Enhanced Progress Overview */}
+          <Animated.View entering={FadeInUp.delay(600).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.progressOverviewCard}>
+              <View style={styles.progressHeader}>
+                <Text style={[styles.cardTitle, { color: colors.text }]}>Your Progress</Text>
+                <TouchableOpacity onPress={() => router.push('/analytics')}>
+                  <BarChart3 size={20} color={colors.primary[500]} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.statsGrid}>
+                {progressStats.map((stat, index) => (
+                  <Animated.View
+                    key={stat.label}
+                    entering={FadeInRight.delay(700 + index * 150).duration(600)}
+                    style={[styles.statItem, { backgroundColor: colors.neutral[25] }]}
+                  >
+                    <View style={styles.statHeader}>
+                      <View style={[styles.statIconContainer, { backgroundColor: `${stat.color}15` }]}>
+                        {stat.icon}
+                      </View>
+                      <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
+                    </View>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
+                    <ProgressIndicator
+                      progress={stat.progress}
+                      size="sm"
+                      color={stat.color}
+                      showLabel={false}
+                      style={styles.statProgress}
+                    />
+                    <Text style={[styles.statTrend, { color: stat.color }]}>{stat.trend}</Text>
+                  </Animated.View>
+                ))}
+              </View>
+            </EnhancedCard>
+          </Animated.View>
+
+          {/* Smart Quick Actions */}
+          <Animated.View entering={FadeInUp.delay(800).duration(600)}>
+            <QuickActionsGrid 
+              actions={quickActions}
+              onActionPress={handleQuickAction}
+            />
+          </Animated.View>
+
+          {/* Mood Check-in */}
+          <Animated.View entering={FadeInUp.delay(1000).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.checkInCard}>
+              <Text style={[styles.checkInTitle, { color: colors.text }]}>How are you feeling today?</Text>
+              <Text style={[styles.checkInSubtitle, { color: colors.textSecondary }]}>
+                Help us personalize your learning experience
+              </Text>
+              <View style={styles.moodSelector}>
+                {moodOptions.map((mood, index) => (
+                  <Animated.View
+                    key={mood.id}
+                    entering={FadeInUp.delay(1100 + index * 100).duration(500)}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.moodOption,
+                        { backgroundColor: colors.neutral[50] },
+                        selectedMood === mood.id && { 
+                          backgroundColor: `${mood.color}15`,
+                          borderColor: mood.color,
+                          borderWidth: 2,
+                        }
+                      ]}
+                      onPress={() => handleMoodSelect(mood.id)}
+                    >
+                      {mood.icon}
+                      <Text style={[
+                        styles.moodLabel, 
+                        { color: colors.textSecondary },
+                        selectedMood === mood.id && { color: mood.color, fontWeight: '600' }
+                      ]}>
+                        {mood.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
+              </View>
+            </EnhancedCard>
+          </Animated.View>
+
+          {/* Smart Recommendations */}
+          <Animated.View entering={FadeInUp.delay(1200).duration(600)}>
+            <SmartRecommendations 
+              userMood={selectedMood}
+              currentStreak={userActivity.streak}
+              timeOfDay={currentTime.getHours()}
+            />
+          </Animated.View>
+
+          {/* Enhanced Featured Courses */}
+          <Animated.View entering={FadeInUp.delay(1400).duration(600)} style={styles.featuredSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Continue Learning</Text>
+              <TouchableOpacity onPress={() => router.push('/courses')}>
+                <Text style={[styles.seeAllText, { color: colors.primary[500] }]}>See All</Text>
               </TouchableOpacity>
             </View>
             
-            <View style={styles.planItems}>
-              <View style={styles.planItem}>
-                <BookOpen size={16} color={colors.primary[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.course}</Text>
-              </View>
-              <View style={styles.planItem}>
-                <Dumbbell size={16} color={colors.success[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.workout}</Text>
-              </View>
-              <View style={styles.planItem}>
-                <Calendar size={16} color={colors.accent[500]} />
-                <Text style={[styles.planItemText, { color: colors.text }]}>{todaysPlan.coaching}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.progressContainer}>
-              <View style={styles.progressHeader}>
-                <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>Daily Progress</Text>
-                <Text style={[styles.progressValue, { color: colors.text }]}>{todaysPlan.progress}%</Text>
-              </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
-                <View style={[
-                  styles.progressFill, 
-                  { backgroundColor: colors.primary[500], width: `${todaysPlan.progress}%` }
-                ]} />
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Progress Overview */}
-          <Animated.View 
-            entering={FadeInUp.delay(500).duration(500)}
-            style={[styles.progressOverviewCard, { backgroundColor: colors.background }]}
-          >
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Progress Overview</Text>
-            <View style={styles.statsGrid}>
-              {progressStats.map((stat, index) => (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+            >
+              {featuredCourses.map((course, index) => (
                 <Animated.View
-                  key={stat.label}
-                  entering={FadeInRight.delay(600 + index * 100).duration(500)}
-                  style={[styles.statItem, { backgroundColor: colors.neutral[50] }]}
+                  key={course.id}
+                  entering={FadeInRight.delay(1500 + index * 200).duration(600)}
+                  style={styles.featuredCourseCard}
                 >
-                  <View style={styles.statIcon}>
-                    {stat.icon}
-                  </View>
-                  <Text style={[styles.statValue, { color: colors.text }]}>{stat.value}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{stat.label}</Text>
-                </Animated.View>
-              ))}
-            </View>
-          </Animated.View>
-
-          {/* Quick Actions */}
-          <Animated.View 
-            entering={FadeInUp.delay(600).duration(500)}
-            style={styles.quickActionsContainer}
-          >
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
-            <View style={styles.quickActionsGrid}>
-              {quickActions.map((action, index) => (
-                <Animated.View
-                  key={action.id}
-                  entering={FadeInUp.delay(700 + index * 100).duration(500)}
-                  style={[styles.quickActionItem, { width: (screenWidth - 60) / 2 }]}
-                >
-                  <TouchableOpacity
-                    style={[styles.quickActionButton, { backgroundColor: action.color }]}
-                    activeOpacity={0.8}
+                  <EnhancedCard
+                    variant="elevated"
+                    interactive
+                    glowEffect
+                    onPress={() => {}}
+                    style={styles.courseCard}
                   >
-                    {action.icon}
-                    <Text style={styles.quickActionText}>{action.title}</Text>
-                  </TouchableOpacity>
+                    <View style={styles.courseImageContainer}>
+                      <View 
+                        style={[
+                          styles.courseImage,
+                          { backgroundColor: colors.neutral[200] }
+                        ]}
+                      />
+                      <View style={styles.courseOverlay}>
+                        <View style={[styles.playButton, { backgroundColor: colors.primary[500] }]}>
+                          <Play size={16} color="white" />
+                        </View>
+                      </View>
+                      <View style={[styles.difficultyBadge, { backgroundColor: colors.warning[500] }]}>
+                        <Text style={styles.difficultyText}>{course.difficulty}</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.courseContent}>
+                      <Text style={[styles.courseTitle, { color: colors.text }]} numberOfLines={2}>
+                        {course.title}
+                      </Text>
+                      <Text style={[styles.courseInstructor, { color: colors.textSecondary }]}>
+                        {course.instructor}
+                      </Text>
+                      
+                      <View style={styles.courseStats}>
+                        <View style={styles.courseStat}>
+                          <Star size={12} color={colors.warning[500]} fill={colors.warning[500]} />
+                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                            {course.rating}
+                          </Text>
+                        </View>
+                        <View style={styles.courseStat}>
+                          <Clock size={12} color={colors.neutral[500]} />
+                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                            {course.timeLeft}
+                          </Text>
+                        </View>
+                      </View>
+                      
+                      <ProgressIndicator
+                        progress={course.progress}
+                        size="sm"
+                        showLabel
+                        label={`${course.progress}% complete`}
+                        style={styles.courseProgress}
+                      />
+                    </View>
+                  </EnhancedCard>
                 </Animated.View>
               ))}
-            </View>
+            </ScrollView>
           </Animated.View>
 
-          {/* Daily Tip */}
-          <Animated.View 
-            entering={FadeInUp.delay(800).duration(500)}
-            style={[styles.dailyTipCard, { backgroundColor: colors.warning[50] }]}
-          >
-            <View style={styles.tipHeader}>
-              <View style={[styles.tipIcon, { backgroundColor: colors.warning[500] }]}>
-                <Coffee size={20} color="white" />
+          {/* Daily Tip with Enhanced Interaction */}
+          <Animated.View entering={FadeInUp.delay(1600).duration(600)}>
+            <GlassCard style={styles.dailyTipCard}>
+              <View style={styles.tipHeader}>
+                <View style={[styles.tipIcon, { backgroundColor: colors.warning[500] }]}>
+                  <Coffee size={24} color="white" />
+                </View>
+                <View>
+                  <Text style={[styles.tipTitle, { color: colors.text }]}>Daily Wisdom</Text>
+                  <Text style={[styles.tipTime, { color: colors.textSecondary }]}>
+                    {currentTime.toLocaleDateString()}
+                  </Text>
+                </View>
               </View>
-              <Text style={[styles.tipTitle, { color: colors.warning[700] }]}>Daily Tip</Text>
-            </View>
-            <Text style={[styles.tipText, { color: colors.warning[600] }]}>{dailyTip}</Text>
-            <TouchableOpacity style={styles.saveButton}>
-              <Heart size={16} color={colors.warning[500]} />
-              <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save to Journal</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* Resume Last Activity */}
-          <Animated.View 
-            entering={FadeInUp.delay(900).duration(500)}
-            style={[styles.resumeCard, { backgroundColor: colors.background }]}
-          >
-            <View style={styles.resumeContent}>
-              <View style={styles.resumeInfo}>
-                <Text style={[styles.resumeTitle, { color: colors.text }]}>Continue Learning</Text>
-                <Text style={[styles.resumeSubtitle, { color: colors.textSecondary }]}>
-                  React Native Advanced - Lesson 8
-                </Text>
-                <Text style={[styles.resumeProgress, { color: colors.primary[500] }]}>
-                  12 minutes left
-                </Text>
+              <Text style={[styles.tipText, { color: colors.textSecondary }]}>
+                "The expert in anything was once a beginner. Focus on progress, not perfection."
+              </Text>
+              <View style={styles.tipActions}>
+                <TouchableOpacity style={styles.saveButton}>
+                  <Heart size={16} color={colors.warning[500]} />
+                  <Text style={[styles.saveButtonText, { color: colors.warning[600] }]}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.shareButton}>
+                  <Text style={[styles.shareButtonText, { color: colors.primary[500] }]}>Share</Text>
+                </TouchableOpacity>
               </View>
-              <Button
-                title="Resume"
-                variant="primary"
-                size="small"
-                icon={<Play size={16} color="white" />}
-                iconPosition="left"
-                onPress={() => {}}
-                style={styles.resumeButton}
-              />
-            </View>
+            </GlassCard>
           </Animated.View>
 
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
+        
+        {/* Bolt Badge */}
+        <BoltBadge 
+          position="bottom-right" 
+          variant={isDarkMode ? "white" : "black"}
+          size="small"
+        />
       </View>
     </SafeAreaView>
   );
@@ -323,55 +526,140 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   greeting: {
     fontSize: 16,
+    fontWeight: '500',
   },
   userName: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
+    marginTop: 4,
+  },
+  userStatus: {
+    fontSize: 14,
+    marginTop: 4,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   notificationBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 10,
+    right: 10,
     width: 8,
     height: 8,
     borderRadius: 4,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 120,
+  },
+  insightBanner: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+  },
+  insightContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  insightIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  insightTextContent: {
+    flex: 1,
+  },
+  insightTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  insightText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  progressOverviewCard: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statItem: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12,
+    marginHorizontal: 4,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  statIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  statLabel: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
+  statProgress: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  statTrend: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   checkInCard: {
     marginHorizontal: 20,
-    marginVertical: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 24,
   },
   checkInTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  checkInSubtitle: {
+    fontSize: 14,
+    marginBottom: 20,
     textAlign: 'center',
   },
   moodSelector: {
@@ -381,7 +669,7 @@ const styles = StyleSheet.create({
   moodOption: {
     alignItems: 'center',
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'transparent',
     minWidth: 80,
@@ -389,240 +677,157 @@ const styles = StyleSheet.create({
   moodLabel: {
     fontSize: 12,
     marginTop: 8,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  aiSuggestionBanner: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 16,
+  featuredSection: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  aiSuggestionContent: {
-    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
-  aiIcon: {
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  featuredList: {
+    paddingHorizontal: 20,
+  },
+  featuredCourseCard: {
+    width: 280,
+    marginRight: 16,
+  },
+  courseCard: {
+    padding: 0,
+    overflow: 'hidden',
+  },
+  courseImageContainer: {
+    position: 'relative',
+    height: 120,
+  },
+  courseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  courseOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
-  aiTextContent: {
-    flex: 1,
-  },
-  aiSuggestionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  aiSuggestionText: {
-    fontSize: 14,
-  },
-  aiActionButton: {
-    marginLeft: 12,
-  },
-  todaysPlanCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  planItems: {
-    marginBottom: 20,
-  },
-  planItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  planItemText: {
-    fontSize: 16,
-    marginLeft: 12,
-  },
-  progressContainer: {
-    marginTop: 8,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  progressLabel: {
-    fontSize: 14,
-  },
-  progressValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
+  difficultyBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
   },
-  progressOverviewCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+  difficultyText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
+  courseContent: {
     padding: 16,
-    borderRadius: 12,
-    marginHorizontal: 4,
   },
-  statIcon: {
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 18,
+  courseTitle: {
+    fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 12,
-  },
-  quickActionsContainer: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  quickActionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  quickActionItem: {
+  courseInstructor: {
+    fontSize: 14,
     marginBottom: 12,
   },
-  quickActionButton: {
+  courseStats: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  courseStat: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
+    marginRight: 16,
   },
-  quickActionText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 8,
+  courseStatText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  courseProgress: {
+    marginTop: 8,
   },
   dailyTipCard: {
     marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
+    marginBottom: 24,
   },
   tipHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tipIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   tipTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  tipTime: {
+    fontSize: 12,
+    marginTop: 2,
   },
   tipText: {
     fontSize: 16,
     lineHeight: 24,
     marginBottom: 16,
+    fontStyle: 'italic',
   },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-  },
-  saveButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  resumeCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  resumeContent: {
+  tipActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  resumeInfo: {
-    flex: 1,
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  resumeTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  resumeSubtitle: {
+  saveButtonText: {
     fontSize: 14,
-    marginBottom: 4,
+    fontWeight: '600',
+    marginLeft: 8,
   },
-  resumeProgress: {
-    fontSize: 12,
-    fontWeight: '500',
+  shareButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  resumeButton: {
-    marginLeft: 16,
+  shareButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   bottomSpacing: {
-    height: 20,
+    height: 40,
   },
 });
