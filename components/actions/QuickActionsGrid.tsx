@@ -30,7 +30,7 @@ interface QuickAction {
   gradient: string[];
   stats?: string;
   priority?: 'high' | 'medium' | 'low';
-  action?: () => void;
+  onPress?: () => void;
 }
 
 interface QuickActionsGridProps {
@@ -234,7 +234,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#8B5CF6', '#EC4899'],
       stats: 'New',
       priority: 'high',
-      action: handleGoalSetting,
+      onPress: handleGoalSetting,
     },
     {
       id: 'career',
@@ -244,7 +244,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#3B82F6', '#06B6D4'],
       stats: '3 sessions',
       priority: 'high',
-      action: handleCareerGrowth,
+      onPress: handleCareerGrowth,
     },
     {
       id: 'fitness',
@@ -254,7 +254,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#10B981', '#22C55E'],
       stats: '15 min',
       priority: 'medium',
-      action: handleFitnessPlan,
+      onPress: handleFitnessPlan,
     },
     {
       id: 'passion',
@@ -264,7 +264,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#F59E0B', '#EF4444'],
       stats: 'Inspire',
       priority: 'medium',
-      action: handlePassionProject,
+      onPress: handlePassionProject,
     },
     {
       id: 'skills',
@@ -274,7 +274,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#6366F1', '#8B5CF6'],
       stats: '150+ courses',
       priority: 'high',
-      action: handleLearnSkills,
+      onPress: handleLearnSkills,
     },
     {
       id: 'plan',
@@ -284,7 +284,7 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       gradient: ['#14B8A6', '#06B6D4'],
       stats: 'Today',
       priority: 'medium',
-      action: handleDailyPlan,
+      onPress: handleDailyPlan,
     },
   ];
 
@@ -297,9 +297,9 @@ export function QuickActionsGrid({ actions, onActionPress }: QuickActionsGridPro
       return;
     }
     
-    // Execute the action only if it exists
-    if (action.action && typeof action.action === 'function') {
-      action.action();
+    // Execute the action's onPress handler if it exists
+    if (action.onPress && typeof action.onPress === 'function') {
+      action.onPress();
     }
   };
 
