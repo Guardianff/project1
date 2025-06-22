@@ -235,11 +235,6 @@ export default function CoachingScreen() {
               />
             </View>
           </View>
-          
-          {/* "Built on Bolt" badge */}
-          <View style={styles.boltBadgeContainer}>
-            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
-          </View>
         </ScrollView>
       </View>
     </SafeAreaView>

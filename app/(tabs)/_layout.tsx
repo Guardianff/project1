@@ -6,6 +6,7 @@ import { Chrome as Home, BookOpen, Calendar, FolderOpen, User } from 'lucide-rea
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { AIFloatingButton } from '@/components/ai/AIFloatingButton';
+import { BoltBadge } from '@/components/ui/BoltBadge';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
 interface TabIconProps {
@@ -171,6 +172,13 @@ export default function TabLayout() {
       
       {/* AI Floating Button */}
       <AIFloatingButton />
+      
+      {/* Bolt Badge */}
+      <BoltBadge 
+        position="bottom-right" 
+        variant={isDarkMode ? "white" : "black"}
+        size="small"
+      />
     </View>
   );
 }
