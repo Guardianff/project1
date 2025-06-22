@@ -16,7 +16,6 @@ import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, U
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
-import { BoltBadge } from '@/components/ui/BoltBadge';
 import { achievements, recentActivities, learningPaths } from '@/data/mockData';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
@@ -438,14 +437,12 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
           </Animated.View>
+          
+          {/* "Built on Bolt" badge */}
+          <View style={styles.boltBadgeContainer}>
+            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
+          </View>
         </ScrollView>
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );

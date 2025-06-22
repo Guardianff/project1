@@ -22,7 +22,6 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { InteractiveCard } from '@/components/ui/InteractiveCard';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { Badge } from '@/components/ui/Badge';
-import { BoltBadge } from '@/components/ui/BoltBadge';
 import { categories, featuredCourses, recommendedCourses } from '@/data/mockData';
 import { Course } from '@/types/course';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
@@ -147,15 +146,7 @@ export default function CoursesScreen() {
               Expand your skills with expert-led courses
             </Text>
           </View>
-          <TouchableOpacity 
-            onPress={handleCategoriesPress}
-            style={[styles.browseAllButton, { backgroundColor: colors.primary[50] }]}
-          >
-            <Text style={[styles.viewCategoriesText, { color: colors.primary[500] }]}>
-              Browse All
-            </Text>
-            <LayoutGrid size={16} color={colors.primary[500]} style={styles.browseIcon} />
-          </TouchableOpacity>
+          
         </Animated.View>
 
         {/* Enhanced Search Bar */}
@@ -359,13 +350,6 @@ export default function CoursesScreen() {
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );
@@ -397,19 +381,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
-  browseAllButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginLeft: 8,
-  },
-  browseIcon: {
-    marginLeft: 6,
-  },
   viewCategoriesText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   content: {
