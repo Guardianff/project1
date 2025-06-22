@@ -437,6 +437,11 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
           </Animated.View>
+          
+          {/* "Built on Bolt" badge */}
+          <View style={styles.boltBadgeContainer}>
+            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
+          </View>
         </ScrollView>
       </View>
     </SafeAreaView>
