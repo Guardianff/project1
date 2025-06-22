@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3 } from 'lucide-react-native';
+import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3, Plus, X } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
@@ -16,8 +16,17 @@ import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget'
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
 import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
+import { supabase } from '@/utils/supabase';
 
 const screenWidth = Dimensions.get('window').width;
+
+// Define Todo interface to match our database schema
+interface Todo {
+  id: string;
+  text: string;
+  completed: boolean;
+  created_at: string;
+}
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -32,6 +41,12 @@ export default function HomeScreen() {
     streak: 7,
   });
   
+  // Supabase todos state
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [newTodoText, setNewTodoText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
@@ -41,6 +56,105 @@ export default function HomeScreen() {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch todos from Supabase
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  const fetchTodos = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { data, error } = await supabase
+        .from('todos')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+      
+      setTodos(data || []);
+    } catch (err) {
+      console.error('Error fetching todos:', err);
+      setError('Failed to load todos. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addTodo = async () => {
+    if (!newTodoText.trim()) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { error } = await supabase
+        .from('todos')
+        .insert([{ text: newTodoText.trim(), completed: false }]);
+      
+      if (error) {
+        throw error;
+      }
+      
+      setNewTodoText('');
+      fetchTodos(); // Refresh the list
+    } catch (err) {
+      console.error('Error adding todo:', err);
+      setError('Failed to add todo. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleTodoCompletion = async (todo: Todo) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { error } = await supabase
+        .from('todos')
+        .update({ completed: !todo.completed })
+        .eq('id', todo.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      fetchTodos(); // Refresh the list
+    } catch (err) {
+      console.error('Error toggling todo completion:', err);
+      setError('Failed to update todo. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteTodo = async (todoId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const { error } = await supabase
+        .from('todos')
+        .delete()
+        .eq('id', todoId);
+      
+      if (error) {
+        throw error;
+      }
+      
+      fetchTodos(); // Refresh the list
+    } catch (err) {
+      console.error('Error deleting todo:', err);
+      setError('Failed to delete todo. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -287,8 +401,102 @@ export default function HomeScreen() {
             </GlassCard>
           </Animated.View>
 
-          {/* Learning Streak Widget */}
+          {/* Todo List Section */}
           <Animated.View entering={FadeInUp.delay(400).duration(600)}>
+            <EnhancedCard variant="elevated" style={styles.todoCard}>
+              <View style={styles.todoHeader}>
+                <Text style={[styles.todoTitle, { color: colors.text }]}>My Todo List</Text>
+                <TouchableOpacity onPress={fetchTodos}>
+                  <RefreshCw size={20} color={colors.primary[500]} />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Add Todo Input */}
+              <View style={styles.todoInputContainer}>
+                <TextInput
+                  style={[styles.todoInput, { 
+                    backgroundColor: colors.neutral[50],
+                    color: colors.text,
+                    borderColor: colors.neutral[200]
+                  }]}
+                  placeholder="Add a new todo..."
+                  placeholderTextColor={colors.neutral[400]}
+                  value={newTodoText}
+                  onChangeText={setNewTodoText}
+                  onSubmitEditing={addTodo}
+                  returnKeyType="done"
+                />
+                <TouchableOpacity 
+                  style={[styles.addTodoButton, { backgroundColor: colors.primary[500] }]}
+                  onPress={addTodo}
+                  disabled={isLoading || !newTodoText.trim()}
+                >
+                  <Plus size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Error Message */}
+              {error && (
+                <Text style={[styles.errorText, { color: colors.error[500] }]}>
+                  {error}
+                </Text>
+              )}
+              
+              {/* Loading Indicator */}
+              {isLoading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator color={colors.primary[500]} />
+                </View>
+              )}
+              
+              {/* Todo List */}
+              <View style={styles.todoList}>
+                {todos.length === 0 && !isLoading ? (
+                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                    No todos yet. Add one above!
+                  </Text>
+                ) : (
+                  todos.map((todo) => (
+                    <View key={todo.id} style={styles.todoItem}>
+                      <TouchableOpacity
+                        style={styles.todoCheckbox}
+                        onPress={() => toggleTodoCompletion(todo)}
+                      >
+                        {todo.completed ? (
+                          <CheckCircle size={24} color={colors.success[500]} />
+                        ) : (
+                          <View style={[styles.uncheckedBox, { borderColor: colors.neutral[400] }]} />
+                        )}
+                      </TouchableOpacity>
+                      
+                      <Text 
+                        style={[
+                          styles.todoText, 
+                          { color: colors.text },
+                          todo.completed && { 
+                            textDecorationLine: 'line-through',
+                            color: colors.textSecondary
+                          }
+                        ]}
+                      >
+                        {todo.text}
+                      </Text>
+                      
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => deleteTodo(todo.id)}
+                      >
+                        <X size={18} color={colors.error[500]} />
+                      </TouchableOpacity>
+                    </View>
+                  ))
+                )}
+              </View>
+            </EnhancedCard>
+          </Animated.View>
+
+          {/* Learning Streak Widget */}
+          <Animated.View entering={FadeInUp.delay(500).duration(600)}>
             <LearningStreakWidget 
               streak={userActivity.streak}
               todaySessions={userActivity.sessionsToday}
@@ -585,6 +793,78 @@ const styles = StyleSheet.create({
   insightText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  todoCard: {
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  todoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  todoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  todoInputContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  todoInput: {
+    flex: 1,
+    height: 44,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginRight: 8,
+  },
+  addTodoButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  todoList: {
+    marginTop: 8,
+  },
+  todoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  todoCheckbox: {
+    marginRight: 12,
+  },
+  uncheckedBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  todoText: {
+    flex: 1,
+    fontSize: 16,
+  },
+  deleteButton: {
+    padding: 8,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    marginBottom: 16,
+    fontSize: 14,
+  },
+  emptyText: {
+    textAlign: 'center',
+    padding: 20,
+    fontSize: 16,
   },
   progressOverviewCard: {
     marginHorizontal: 20,
