@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3, Plus, X } from 'lucide-react-native';
+import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3, Plus, X, RefreshCw } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
@@ -15,7 +15,7 @@ import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashbo
 import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
-import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import { supabase } from '@/utils/supabase';
 
 const screenWidth = Dimensions.get('window').width;
@@ -46,10 +46,16 @@ export default function HomeScreen() {
   const [newTodoText, setNewTodoText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showCompletedTodos, setShowCompletedTodos] = useState(true);
   
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
+
+  // Animation values
+  const refreshRotation = useSharedValue(0);
+  const addButtonScale = useSharedValue(1);
 
   // Update time every minute for dynamic greetings
   useEffect(() => {
@@ -66,6 +72,10 @@ export default function HomeScreen() {
     try {
       setIsLoading(true);
       setError(null);
+      setRefreshing(true);
+      
+      // Start refresh animation
+      refreshRotation.value = withTiming(refreshRotation.value + 360, { duration: 1000 });
       
       const { data, error } = await supabase
         .from('todos')
@@ -82,6 +92,7 @@ export default function HomeScreen() {
       setError('Failed to load todos. Please try again.');
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -91,6 +102,12 @@ export default function HomeScreen() {
     try {
       setIsLoading(true);
       setError(null);
+      
+      // Animate button press
+      addButtonScale.value = withSpring(0.8, { damping: 10 });
+      setTimeout(() => {
+        addButtonScale.value = withSpring(1, { damping: 10 });
+      }, 100);
       
       const { error } = await supabase
         .from('todos')
@@ -124,7 +141,15 @@ export default function HomeScreen() {
         throw error;
       }
       
-      fetchTodos(); // Refresh the list
+      // Optimistically update the UI
+      setTodos(prevTodos => 
+        prevTodos.map(t => 
+          t.id === todo.id ? { ...t, completed: !t.completed } : t
+        )
+      );
+      
+      // Then fetch the updated list
+      fetchTodos();
     } catch (err) {
       console.error('Error toggling todo completion:', err);
       setError('Failed to update todo. Please try again.');
@@ -147,7 +172,11 @@ export default function HomeScreen() {
         throw error;
       }
       
-      fetchTodos(); // Refresh the list
+      // Optimistically update the UI
+      setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId));
+      
+      // Then fetch the updated list
+      fetchTodos();
     } catch (err) {
       console.error('Error deleting todo:', err);
       setError('Failed to delete todo. Please try again.');
@@ -155,6 +184,29 @@ export default function HomeScreen() {
       setIsLoading(false);
     }
   };
+
+  // Filter todos based on completion status
+  const filteredTodos = showCompletedTodos 
+    ? todos 
+    : todos.filter(todo => !todo.completed);
+
+  // Get completed todos count
+  const completedCount = todos.filter(todo => todo.completed).length;
+  const totalCount = todos.length;
+  const completionPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+  // Animated styles
+  const refreshIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${refreshRotation.value}deg` }],
+    };
+  });
+
+  const addButtonStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: addButtonScale.value }],
+    };
+  });
 
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -406,9 +458,44 @@ export default function HomeScreen() {
             <EnhancedCard variant="elevated" style={styles.todoCard}>
               <View style={styles.todoHeader}>
                 <Text style={[styles.todoTitle, { color: colors.text }]}>My Todo List</Text>
-                <TouchableOpacity onPress={fetchTodos}>
-                  <RefreshCw size={20} color={colors.primary[500]} />
-                </TouchableOpacity>
+                <View style={styles.todoActions}>
+                  <TouchableOpacity 
+                    style={[styles.todoFilterButton, { backgroundColor: colors.neutral[100] }]}
+                    onPress={() => setShowCompletedTodos(!showCompletedTodos)}
+                  >
+                    <Text style={[styles.todoFilterText, { color: colors.neutral[600] }]}>
+                      {showCompletedTodos ? 'Hide Completed' : 'Show All'}
+                    </Text>
+                  </TouchableOpacity>
+                  <Animated.View style={refreshIconStyle}>
+                    <TouchableOpacity 
+                      style={[styles.refreshButton, { backgroundColor: colors.primary[50] }]}
+                      onPress={fetchTodos}
+                      disabled={refreshing}
+                    >
+                      <RefreshCw size={20} color={colors.primary[500]} />
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+              </View>
+              
+              {/* Todo Progress */}
+              <View style={styles.todoProgress}>
+                <View style={styles.todoProgressHeader}>
+                  <Text style={[styles.todoProgressText, { color: colors.textSecondary }]}>
+                    {completedCount} of {totalCount} completed
+                  </Text>
+                  <Text style={[styles.todoProgressPercentage, { color: colors.primary[500] }]}>
+                    {Math.round(completionPercentage)}%
+                  </Text>
+                </View>
+                <ProgressIndicator
+                  progress={completionPercentage}
+                  size="sm"
+                  color={colors.primary[500]}
+                  showLabel={false}
+                  style={styles.todoProgressBar}
+                />
               </View>
               
               {/* Add Todo Input */}
@@ -426,13 +513,15 @@ export default function HomeScreen() {
                   onSubmitEditing={addTodo}
                   returnKeyType="done"
                 />
-                <TouchableOpacity 
-                  style={[styles.addTodoButton, { backgroundColor: colors.primary[500] }]}
-                  onPress={addTodo}
-                  disabled={isLoading || !newTodoText.trim()}
-                >
-                  <Plus size={20} color="white" />
-                </TouchableOpacity>
+                <Animated.View style={addButtonStyle}>
+                  <TouchableOpacity 
+                    style={[styles.addTodoButton, { backgroundColor: colors.primary[500] }]}
+                    onPress={addTodo}
+                    disabled={isLoading || !newTodoText.trim()}
+                  >
+                    <Plus size={20} color="white" />
+                  </TouchableOpacity>
+                </Animated.View>
               </View>
               
               {/* Error Message */}
@@ -451,44 +540,58 @@ export default function HomeScreen() {
               
               {/* Todo List */}
               <View style={styles.todoList}>
-                {todos.length === 0 && !isLoading ? (
-                  <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                    No todos yet. Add one above!
-                  </Text>
+                {filteredTodos.length === 0 && !isLoading ? (
+                  <View style={styles.emptyContainer}>
+                    <CheckCircle size={40} color={colors.neutral[300]} />
+                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                      {todos.length === 0 ? 'No todos yet. Add one above!' : 'All todos completed!'}
+                    </Text>
+                  </View>
                 ) : (
-                  todos.map((todo) => (
-                    <View key={todo.id} style={styles.todoItem}>
-                      <TouchableOpacity
-                        style={styles.todoCheckbox}
-                        onPress={() => toggleTodoCompletion(todo)}
-                      >
-                        {todo.completed ? (
-                          <CheckCircle size={24} color={colors.success[500]} />
-                        ) : (
-                          <View style={[styles.uncheckedBox, { borderColor: colors.neutral[400] }]} />
-                        )}
-                      </TouchableOpacity>
-                      
-                      <Text 
-                        style={[
-                          styles.todoText, 
-                          { color: colors.text },
-                          todo.completed && { 
-                            textDecorationLine: 'line-through',
-                            color: colors.textSecondary
-                          }
-                        ]}
-                      >
-                        {todo.text}
-                      </Text>
-                      
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => deleteTodo(todo.id)}
-                      >
-                        <X size={18} color={colors.error[500]} />
-                      </TouchableOpacity>
-                    </View>
+                  filteredTodos.map((todo, index) => (
+                    <Animated.View 
+                      key={todo.id} 
+                      entering={FadeInRight.delay(index * 100).duration(400)}
+                    >
+                      <View style={[
+                        styles.todoItem, 
+                        index < filteredTodos.length - 1 && { 
+                          borderBottomWidth: 1, 
+                          borderBottomColor: colors.neutral[200] 
+                        }
+                      ]}>
+                        <TouchableOpacity
+                          style={styles.todoCheckbox}
+                          onPress={() => toggleTodoCompletion(todo)}
+                        >
+                          {todo.completed ? (
+                            <CheckCircle size={24} color={colors.success[500]} />
+                          ) : (
+                            <View style={[styles.uncheckedBox, { borderColor: colors.neutral[400] }]} />
+                          )}
+                        </TouchableOpacity>
+                        
+                        <Text 
+                          style={[
+                            styles.todoText, 
+                            { color: colors.text },
+                            todo.completed && { 
+                              textDecorationLine: 'line-through',
+                              color: colors.textSecondary
+                            }
+                          ]}
+                        >
+                          {todo.text}
+                        </Text>
+                        
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={() => deleteTodo(todo.id)}
+                        >
+                          <X size={18} color={colors.error[500]} />
+                        </TouchableOpacity>
+                      </View>
+                    </Animated.View>
                   ))
                 )}
               </View>
@@ -805,8 +908,48 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   todoTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
+  },
+  todoActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  todoFilterButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+  },
+  todoFilterText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  refreshButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  todoProgress: {
+    marginBottom: 16,
+  },
+  todoProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  todoProgressText: {
+    fontSize: 14,
+  },
+  todoProgressPercentage: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  todoProgressBar: {
+    marginBottom: 8,
   },
   todoInputContainer: {
     flexDirection: 'row',
@@ -834,8 +977,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
   },
   todoCheckbox: {
     marginRight: 12,
@@ -861,10 +1002,15 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontSize: 14,
   },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
   emptyText: {
     textAlign: 'center',
-    padding: 20,
     fontSize: 16,
+    marginTop: 8,
   },
   progressOverviewCard: {
     marginHorizontal: 20,
