@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOpacity, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3, Plus, X, RefreshCw } from 'lucide-react-native';
+import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3 } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
@@ -15,18 +15,9 @@ import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashbo
 import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
-import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring, withTiming, useAnimatedStyle } from 'react-native-reanimated';
-import { supabase } from '@/utils/supabase';
+import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
-
-// Define Todo interface to match our database schema
-interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
-  created_at: string;
-}
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -41,172 +32,15 @@ export default function HomeScreen() {
     streak: 7,
   });
   
-  // Supabase todos state
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodoText, setNewTodoText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [showCompletedTodos, setShowCompletedTodos] = useState(true);
-  
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
-
-  // Animation values
-  const refreshRotation = useSharedValue(0);
-  const addButtonScale = useSharedValue(1);
 
   // Update time every minute for dynamic greetings
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
-
-  // Fetch todos from Supabase
-  useEffect(() => {
-    fetchTodos();
-  }, []);
-
-  const fetchTodos = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setRefreshing(true);
-      
-      // Start refresh animation
-      refreshRotation.value = withTiming(refreshRotation.value + 360, { duration: 1000 });
-      
-      const { data, error } = await supabase
-        .from('todos')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setTodos(data || []);
-    } catch (err) {
-      console.error('Error fetching todos:', err);
-      setError('Failed to load todos. Please try again.');
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const addTodo = async () => {
-    if (!newTodoText.trim()) return;
-    
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      // Animate button press
-      addButtonScale.value = withSpring(0.8, { damping: 10 });
-      setTimeout(() => {
-        addButtonScale.value = withSpring(1, { damping: 10 });
-      }, 100);
-      
-      const { error } = await supabase
-        .from('todos')
-        .insert([{ text: newTodoText.trim(), completed: false }]);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setNewTodoText('');
-      fetchTodos(); // Refresh the list
-    } catch (err) {
-      console.error('Error adding todo:', err);
-      setError('Failed to add todo. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const toggleTodoCompletion = async (todo: Todo) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const { error } = await supabase
-        .from('todos')
-        .update({ completed: !todo.completed })
-        .eq('id', todo.id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Optimistically update the UI
-      setTodos(prevTodos => 
-        prevTodos.map(t => 
-          t.id === todo.id ? { ...t, completed: !t.completed } : t
-        )
-      );
-      
-      // Then fetch the updated list
-      fetchTodos();
-    } catch (err) {
-      console.error('Error toggling todo completion:', err);
-      setError('Failed to update todo. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const deleteTodo = async (todoId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      const { error } = await supabase
-        .from('todos')
-        .delete()
-        .eq('id', todoId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Optimistically update the UI
-      setTodos(prevTodos => prevTodos.filter(todo => todo.id !== todoId));
-      
-      // Then fetch the updated list
-      fetchTodos();
-    } catch (err) {
-      console.error('Error deleting todo:', err);
-      setError('Failed to delete todo. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Filter todos based on completion status
-  const filteredTodos = showCompletedTodos 
-    ? todos 
-    : todos.filter(todo => !todo.completed);
-
-  // Get completed todos count
-  const completedCount = todos.filter(todo => todo.completed).length;
-  const totalCount = todos.length;
-  const completionPercentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-  // Animated styles
-  const refreshIconStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${refreshRotation.value}deg` }],
-    };
-  });
-
-  const addButtonStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: addButtonScale.value }],
-    };
-  });
 
   // Dynamic greeting based on time
   const getGreeting = () => {
@@ -453,153 +287,8 @@ export default function HomeScreen() {
             </GlassCard>
           </Animated.View>
 
-          {/* Todo List Section */}
-          <Animated.View entering={FadeInUp.delay(400).duration(600)}>
-            <EnhancedCard variant="elevated" style={styles.todoCard}>
-              <View style={styles.todoHeader}>
-                <Text style={[styles.todoTitle, { color: colors.text }]}>My Todo List</Text>
-                <View style={styles.todoActions}>
-                  <TouchableOpacity 
-                    style={[styles.todoFilterButton, { backgroundColor: colors.neutral[100] }]}
-                    onPress={() => setShowCompletedTodos(!showCompletedTodos)}
-                  >
-                    <Text style={[styles.todoFilterText, { color: colors.neutral[600] }]}>
-                      {showCompletedTodos ? 'Hide Completed' : 'Show All'}
-                    </Text>
-                  </TouchableOpacity>
-                  <Animated.View style={refreshIconStyle}>
-                    <TouchableOpacity 
-                      style={[styles.refreshButton, { backgroundColor: colors.primary[50] }]}
-                      onPress={fetchTodos}
-                      disabled={refreshing}
-                    >
-                      <RefreshCw size={20} color={colors.primary[500]} />
-                    </TouchableOpacity>
-                  </Animated.View>
-                </View>
-              </View>
-              
-              {/* Todo Progress */}
-              <View style={styles.todoProgress}>
-                <View style={styles.todoProgressHeader}>
-                  <Text style={[styles.todoProgressText, { color: colors.textSecondary }]}>
-                    {completedCount} of {totalCount} completed
-                  </Text>
-                  <Text style={[styles.todoProgressPercentage, { color: colors.primary[500] }]}>
-                    {Math.round(completionPercentage)}%
-                  </Text>
-                </View>
-                <ProgressIndicator
-                  progress={completionPercentage}
-                  size="sm"
-                  color={colors.primary[500]}
-                  showLabel={false}
-                  style={styles.todoProgressBar}
-                />
-              </View>
-              
-              {/* Add Todo Input */}
-              <View style={styles.todoInputContainer}>
-                <TextInput
-                  style={[styles.todoInput, { 
-                    backgroundColor: colors.neutral[50],
-                    color: colors.text,
-                    borderColor: colors.neutral[200]
-                  }]}
-                  placeholder="Add a new todo..."
-                  placeholderTextColor={colors.neutral[400]}
-                  value={newTodoText}
-                  onChangeText={setNewTodoText}
-                  onSubmitEditing={addTodo}
-                  returnKeyType="done"
-                />
-                <Animated.View style={addButtonStyle}>
-                  <TouchableOpacity 
-                    style={[styles.addTodoButton, { backgroundColor: colors.primary[500] }]}
-                    onPress={addTodo}
-                    disabled={isLoading || !newTodoText.trim()}
-                  >
-                    <Plus size={20} color="white" />
-                  </TouchableOpacity>
-                </Animated.View>
-              </View>
-              
-              {/* Error Message */}
-              {error && (
-                <Text style={[styles.errorText, { color: colors.error[500] }]}>
-                  {error}
-                </Text>
-              )}
-              
-              {/* Loading Indicator */}
-              {isLoading && (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator color={colors.primary[500]} />
-                </View>
-              )}
-              
-              {/* Todo List */}
-              <View style={styles.todoList}>
-                {filteredTodos.length === 0 && !isLoading ? (
-                  <View style={styles.emptyContainer}>
-                    <CheckCircle size={40} color={colors.neutral[300]} />
-                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                      {todos.length === 0 ? 'No todos yet. Add one above!' : 'All todos completed!'}
-                    </Text>
-                  </View>
-                ) : (
-                  filteredTodos.map((todo, index) => (
-                    <Animated.View 
-                      key={todo.id} 
-                      entering={FadeInRight.delay(index * 100).duration(400)}
-                    >
-                      <View style={[
-                        styles.todoItem, 
-                        index < filteredTodos.length - 1 && { 
-                          borderBottomWidth: 1, 
-                          borderBottomColor: colors.neutral[200] 
-                        }
-                      ]}>
-                        <TouchableOpacity
-                          style={styles.todoCheckbox}
-                          onPress={() => toggleTodoCompletion(todo)}
-                        >
-                          {todo.completed ? (
-                            <CheckCircle size={24} color={colors.success[500]} />
-                          ) : (
-                            <View style={[styles.uncheckedBox, { borderColor: colors.neutral[400] }]} />
-                          )}
-                        </TouchableOpacity>
-                        
-                        <Text 
-                          style={[
-                            styles.todoText, 
-                            { color: colors.text },
-                            todo.completed && { 
-                              textDecorationLine: 'line-through',
-                              color: colors.textSecondary
-                            }
-                          ]}
-                        >
-                          {todo.text}
-                        </Text>
-                        
-                        <TouchableOpacity
-                          style={styles.deleteButton}
-                          onPress={() => deleteTodo(todo.id)}
-                        >
-                          <X size={18} color={colors.error[500]} />
-                        </TouchableOpacity>
-                      </View>
-                    </Animated.View>
-                  ))
-                )}
-              </View>
-            </EnhancedCard>
-          </Animated.View>
-
           {/* Learning Streak Widget */}
-          <Animated.View entering={FadeInUp.delay(500).duration(600)}>
+          <Animated.View entering={FadeInUp.delay(400).duration(600)}>
             <LearningStreakWidget 
               streak={userActivity.streak}
               todaySessions={userActivity.sessionsToday}
@@ -896,121 +585,6 @@ const styles = StyleSheet.create({
   insightText: {
     fontSize: 14,
     lineHeight: 20,
-  },
-  todoCard: {
-    marginHorizontal: 20,
-    marginBottom: 24,
-  },
-  todoHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  todoTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  todoActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  todoFilterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  todoFilterText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  refreshButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  todoProgress: {
-    marginBottom: 16,
-  },
-  todoProgressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  todoProgressText: {
-    fontSize: 14,
-  },
-  todoProgressPercentage: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  todoProgressBar: {
-    marginBottom: 8,
-  },
-  todoInputContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  todoInput: {
-    flex: 1,
-    height: 44,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginRight: 8,
-  },
-  addTodoButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  todoList: {
-    marginTop: 8,
-  },
-  todoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  todoCheckbox: {
-    marginRight: 12,
-  },
-  uncheckedBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-  },
-  todoText: {
-    flex: 1,
-    fontSize: 16,
-  },
-  deleteButton: {
-    padding: 8,
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  errorText: {
-    marginBottom: 16,
-    fontSize: 14,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  emptyText: {
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 8,
   },
   progressOverviewCard: {
     marginHorizontal: 20,
