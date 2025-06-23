@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { Mail, ArrowLeft, Send, AlertCircle, X, CheckCircle } from 'lucide-react-native';
+import { Mail, ArrowLeft, Send, CircleAlert as AlertCircle, X, CircleCheck as CheckCircle } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 export default function ForgotPasswordScreen() {
