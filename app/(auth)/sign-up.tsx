@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, AlertCircle, X, Check } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, CircleAlert as AlertCircle, X, Check } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 export default function SignUpScreen() {
