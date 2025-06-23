@@ -46,7 +46,6 @@ import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { BoltBadge } from '@/components/ui/BoltBadge';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
 
 interface DigitalBadge {
@@ -656,13 +655,6 @@ export default function ResourcesScreen() {
             </View>
           </View>
         )}
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );

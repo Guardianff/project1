@@ -15,7 +15,6 @@ import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashbo
 import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
-import { BoltBadge } from '@/components/ui/BoltBadge';
 import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
@@ -504,13 +503,6 @@ export default function HomeScreen() {
           {/* Bottom Spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );

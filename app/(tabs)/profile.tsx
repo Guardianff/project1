@@ -8,15 +8,16 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
-  Switch
+  Switch,
+  Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, User, Bell, Lock, CreditCard, CircleHelp as HelpCircle, FileText, LogOut, Moon, Github, Linkedin, Link, Shield, FolderSync as Sync } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
-import { BoltBadge } from '@/components/ui/BoltBadge';
 import { achievements, recentActivities, learningPaths } from '@/data/mockData';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
@@ -54,6 +55,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { isDarkMode, toggleTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { user, signOut } = useAuth();
   const [notifications, setNotifications] = useState(true);
 
   // Mock integration status
@@ -76,6 +78,26 @@ export default function ProfileScreen() {
     return date.toLocaleDateString();
   };
 
+  const handleSignOut = async () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Sign Out",
+          onPress: async () => {
+            await signOut();
+          },
+          style: "destructive"
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
@@ -96,8 +118,12 @@ export default function ProfileScreen() {
             />
             
             <View style={styles.profileInfo}>
-              <Text style={[styles.name, { color: colors.text }]}>Alex Johnson</Text>
-              <Text style={[styles.email, { color: colors.textSecondary }]}>alex.johnson@example.com</Text>
+              <Text style={[styles.name, { color: colors.text }]}>
+                {user?.email ? user.email.split('@')[0] : 'User'}
+              </Text>
+              <Text style={[styles.email, { color: colors.textSecondary }]}>
+                {user?.email || 'user@example.com'}
+              </Text>
               <View style={[styles.membershipBadge, { backgroundColor: colors.secondary[100] }]}>
                 <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Premium Member</Text>
               </View>
@@ -427,7 +453,7 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInUp.delay(1400).duration(500)}>
             <TouchableOpacity 
               style={[styles.logoutButton, { backgroundColor: colors.error[50] }]} 
-              onPress={() => {}}
+              onPress={handleSignOut}
             >
               <LogOut size={22} color={colors.error[500]} />
               <Text style={[styles.logoutText, { color: colors.error[600] }]}>Log Out</Text>
@@ -438,14 +464,12 @@ export default function ProfileScreen() {
           <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
           </Animated.View>
+          
+          {/* "Built on Bolt" badge */}
+          <View style={styles.boltBadgeContainer}>
+            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
+          </View>
         </ScrollView>
-        
-        {/* Bolt Badge */}
-        <BoltBadge 
-          position="bottom-right" 
-          variant={isDarkMode ? "white" : "black"}
-          size="small"
-        />
       </View>
     </SafeAreaView>
   );
@@ -495,6 +519,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 4,
+    textTransform: 'capitalize',
   },
   email: {
     fontSize: 14,
