@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, ViewStyle, Platform } from 'react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { DesignTokens } from '@/constants/DesignTokens';
+import { DesignTokens, MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -144,7 +144,7 @@ export function ModernCard({
   const handlePressIn = () => {
     if (!interactive || disabled) return;
     
-    scale.value = withSpring(0.98, DesignTokens.animations.spring.gentle);
+    scale.value = withSpring(0.98, MotionTokens.spring.gentle);
     elevation.value = withTiming(1, { duration: 150 });
     
     if (glowEffect) {
@@ -153,14 +153,14 @@ export function ModernCard({
     }
     
     if (hoverEffect) {
-      rotateY.value = withSpring(2, DesignTokens.animations.spring.gentle);
+      rotateY.value = withSpring(2, MotionTokens.spring.gentle);
     }
   };
 
   const handlePressOut = () => {
     if (!interactive || disabled) return;
     
-    scale.value = withSpring(1, DesignTokens.animations.spring.gentle);
+    scale.value = withSpring(1, MotionTokens.spring.gentle);
     elevation.value = withTiming(0, { duration: 150 });
     
     if (glowEffect) {
@@ -169,7 +169,7 @@ export function ModernCard({
     }
     
     if (hoverEffect) {
-      rotateY.value = withSpring(0, DesignTokens.animations.spring.gentle);
+      rotateY.value = withSpring(0, MotionTokens.spring.gentle);
     }
   };
 
@@ -177,9 +177,9 @@ export function ModernCard({
     if (disabled) return;
     
     // Add a subtle bounce effect
-    scale.value = withSpring(1.02, DesignTokens.animations.spring.wobbly);
+    scale.value = withSpring(1.02, MotionTokens.spring.wobbly);
     setTimeout(() => {
-      scale.value = withSpring(1, DesignTokens.animations.spring.gentle);
+      scale.value = withSpring(1, MotionTokens.spring.gentle);
     }, 100);
     
     onPress?.();

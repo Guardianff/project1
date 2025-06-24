@@ -3,6 +3,7 @@ import { StyleSheet, View, ViewStyle, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
+import { MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -46,14 +47,14 @@ export function GlassCard({
 
   const handlePressIn = () => {
     if (!interactive) return;
-    scale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
-    opacity.value = withSpring(1, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(0.98, MotionTokens.spring.gentle);
+    opacity.value = withSpring(1, MotionTokens.spring.gentle);
   };
 
   const handlePressOut = () => {
     if (!interactive) return;
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-    opacity.value = withSpring(0.8, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(1, MotionTokens.spring.gentle);
+    opacity.value = withSpring(0.8, MotionTokens.spring.gentle);
   };
 
   const getTint = () => {

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { DesignTokens } from '@/constants/DesignTokens';
+import { DesignTokens, MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -84,13 +84,13 @@ export function SmartInput({
   const sizeConfig = DesignTokens.components.input.sizes[size];
 
   useEffect(() => {
-    focusAnimation.value = withSpring(isFocused ? 1 : 0, DesignTokens.animations.spring.gentle);
+    focusAnimation.value = withSpring(isFocused ? 1 : 0, MotionTokens.spring.gentle);
   }, [isFocused]);
 
   useEffect(() => {
     labelAnimation.value = withSpring(
       (isFocused || value) ? 1 : 0, 
-      DesignTokens.animations.spring.gentle
+      MotionTokens.spring.gentle
     );
   }, [isFocused, value]);
 

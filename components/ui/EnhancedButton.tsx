@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/context/ThemeContext';
-import { DesignTokens } from '@/constants/DesignTokens';
+import { DesignTokens, MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
@@ -96,7 +96,7 @@ export function EnhancedButton({
   const handlePressIn = () => {
     if (disabled || loading) return;
     
-    scale.value = withSpring(0.96, DesignTokens.animations.spring.gentle);
+    scale.value = withSpring(0.96, MotionTokens.spring.gentle);
     shadowElevation.value = withTiming(1, { duration: 150 });
     
     if (glow) {
@@ -107,7 +107,7 @@ export function EnhancedButton({
   const handlePressOut = () => {
     if (disabled || loading) return;
     
-    scale.value = withSpring(1, DesignTokens.animations.spring.gentle);
+    scale.value = withSpring(1, MotionTokens.spring.gentle);
     shadowElevation.value = withTiming(0, { duration: 150 });
     
     if (glow) {
