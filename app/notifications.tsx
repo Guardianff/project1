@@ -32,7 +32,7 @@ import {
   Users,
   MessageCircle
 } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
