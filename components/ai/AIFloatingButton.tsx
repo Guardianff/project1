@@ -8,7 +8,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Bot, Sparkles } from 'lucide-react-native';
 import { useAI } from '@/context/AIContext';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { FloatingActionButton } from '@/components/ui/FloatingActionButton';
 import Animated, {
