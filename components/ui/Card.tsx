@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, ViewStyle } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
-import { Colors } from '@/constants/Colors';
+import { Colors } from '@/constants/theme';
 
 interface CardProps {
   title: string;
