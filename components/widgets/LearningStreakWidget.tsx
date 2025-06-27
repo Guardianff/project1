@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { Flame, Clock, Target, TrendingUp } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } = '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { ProgressIndicator } from '@/components/ui/ProgressIndicator';
