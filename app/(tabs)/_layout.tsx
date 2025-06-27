@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { StyleSheet, View, Platform, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chrome as Home, BookOpen, Calendar, FolderOpen, User } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { AIFloatingButton } from '@/components/ai/AIFloatingButton';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
