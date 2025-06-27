@@ -1,9 +1,8 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors, MotionTokens } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
-import { MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
