@@ -16,7 +16,7 @@ import {
   BookOpen, 
   Calendar 
 } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
