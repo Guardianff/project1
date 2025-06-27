@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, User, Bell, Lock, CreditCard, CircleHelp as HelpCircle, FileText, LogOut, Moon, Github, Linkedin, Link, Shield, FolderSync as Sync } from 'lucide-react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { achievements, recentActivities, learningPaths } from '@/data/mockData';
