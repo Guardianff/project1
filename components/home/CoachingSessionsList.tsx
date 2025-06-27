@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Calendar, Clock, Video } from 'lucide-react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { CoachingSession } from '@/types/course';
 import { Button } from '../ui/Button';
