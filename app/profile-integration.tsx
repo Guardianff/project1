@@ -17,7 +17,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Github, Linkedin, Shield, RefreshCw, Settings, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Clock, Users, Star, GitBranch, Code, Briefcase, GraduationCap, Award, Calendar, Globe, Lock, Download, Upload, Eye, EyeOff, Zap, TrendingUp, Activity, Database, Key, FileText, ChartBar as BarChart3, FolderSync as Sync, X, ChevronRight, Info, ExternalLink } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
