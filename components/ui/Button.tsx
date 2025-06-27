@@ -8,7 +8,7 @@ import {
   TextStyle,
   Platform
 } from 'react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import Animated, { 
   useAnimatedStyle, 
