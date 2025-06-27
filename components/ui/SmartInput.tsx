@@ -9,9 +9,8 @@ import {
   ViewStyle,
   TextStyle
 } from 'react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors, DesignTokens, MotionTokens } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
-import { DesignTokens, MotionTokens } from '@/constants/DesignTokens';
 import Animated, { 
   useAnimatedStyle, 
   useSharedValue, 
