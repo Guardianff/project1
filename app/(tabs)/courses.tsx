@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Filter, ChevronDown, Grid3x3 as Grid3X3, LayoutGrid, TrendingUp, Star, Users, Clock } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedSearchBar } from '@/components/ui/EnhancedSearchBar';
 import { CourseCard } from '@/components/ui/CourseCard';
