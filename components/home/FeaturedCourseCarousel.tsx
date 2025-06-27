@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { CirclePlay as PlayCircle } from 'lucide-react-native';
 import { Course } from '@/types/course';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 
