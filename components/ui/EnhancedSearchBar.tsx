@@ -8,7 +8,7 @@ import {
   Dimensions 
 } from 'react-native';
 import { Search, X, Filter, Mic } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import Animated, { 
   useAnimatedStyle, 
