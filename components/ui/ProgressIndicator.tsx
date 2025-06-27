@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, ViewStyle } from 'react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import Animated, { 
   useAnimatedStyle, 
