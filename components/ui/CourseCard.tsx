@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity, Platform } from 'react
 import { useRouter } from 'expo-router';
 import { Clock, BookOpen, Star, Users, Play } from 'lucide-react-native';
 import { Course } from '@/types/course';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from './EnhancedCard';
 import { ProgressIndicator } from './ProgressIndicator';
