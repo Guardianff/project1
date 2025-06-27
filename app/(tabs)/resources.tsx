@@ -42,7 +42,7 @@ import {
   Zap,
   Target
 } from 'lucide-react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
