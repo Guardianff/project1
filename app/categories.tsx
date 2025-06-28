@@ -28,7 +28,7 @@ import {
   Users,
   Clock
 } from 'lucide-react-native';
-import { Colors, getThemeColors } from '@/constants/Colors';
+import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from '@/components/ui/SearchBar';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
