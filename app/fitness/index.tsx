@@ -13,7 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Dumbbell, Clock, Calendar, Heart, TrendingUp, Play, Flame, Activity, Zap, Plus } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { GlassCard } from '@/components/ui/GlassCard';
