@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView, SafeAreaView, Platform, TouchableOp
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award, Clock, ChevronRight, Smile, Meh, Frown, Heart, Coffee, Dumbbell, Sparkles, ArrowRight, Users, Star, Brain, Flame, CircleCheck as CheckCircle, ChartBar as BarChart3 } from 'lucide-react-native';
-import { getThemeColors } from '@/constants/Colors';
+import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
 import { EnhancedSearchBar } from '@/components/ui/EnhancedSearchBar';
