@@ -357,7 +357,6 @@ CREATE INDEX IF NOT EXISTS idx_coaching_sessions_coach_id ON coaching_sessions(c
 CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);
 CREATE INDEX IF NOT EXISTS idx_learning_path_courses_path_id ON learning_path_courses(learning_path_id);
 
--- Function to automatically create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -368,8 +367,17 @@ BEGIN
   INSERT INTO public.profiles (id, email, full_name)
   VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name');
   RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE NOTICE 'Error creating profile for user: %', NEW.id;
+    RETURN NULL; -- or handle the error as needed
 END;
 $$;
+
+CREATE TRIGGER new_user_profile
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user();
 
 -- Trigger to create profile on user signup
 CREATE OR REPLACE TRIGGER on_auth_user_created
