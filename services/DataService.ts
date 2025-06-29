@@ -55,7 +55,8 @@ export class DataService {
   // Courses
   static async getFeaturedCourses(): Promise<Course[]> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('courses')
         .select(`
           *,
@@ -66,7 +67,41 @@ export class DataService {
         .eq('is_published', true)
         .limit(5);
 
-      if (error) {
+      // If the join fails due to missing foreign key relationships, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        // Get courses without joins
+        const coursesResult = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_featured', true)
+          .eq('is_published', true)
+          .limit(5);
+
+        if (coursesResult.error) {
+          console.error('Error fetching courses:', coursesResult.error);
+          return [];
+        }
+
+        // Get categories and instructors separately
+        const [categoriesResult, instructorsResult] = await Promise.all([
+          supabase.from('categories').select('*'),
+          supabase.from('instructors').select('*')
+        ]);
+
+        // Combine the data manually
+        data = coursesResult.data.map(course => ({
+          ...course,
+          categories: categoriesResult.data?.find(cat => cat.id === course.category_id) || { name: 'General' },
+          instructors: instructorsResult.data?.find(inst => inst.id === course.instructor_id) || {
+            id: '',
+            name: 'Unknown Instructor',
+            title: 'Instructor',
+            avatar_url: null
+          }
+        }));
+      } else if (error) {
         console.error('Error fetching featured courses:', error);
         return [];
       }
@@ -94,7 +129,8 @@ export class DataService {
 
   static async getRecommendedCourses(): Promise<Course[]> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('courses')
         .select(`
           *,
@@ -105,7 +141,41 @@ export class DataService {
         .order('rating', { ascending: false })
         .limit(5);
 
-      if (error) {
+      // If the join fails due to missing foreign key relationships, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        // Get courses without joins
+        const coursesResult = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_published', true)
+          .order('rating', { ascending: false })
+          .limit(5);
+
+        if (coursesResult.error) {
+          console.error('Error fetching courses:', coursesResult.error);
+          return [];
+        }
+
+        // Get categories and instructors separately
+        const [categoriesResult, instructorsResult] = await Promise.all([
+          supabase.from('categories').select('*'),
+          supabase.from('instructors').select('*')
+        ]);
+
+        // Combine the data manually
+        data = coursesResult.data.map(course => ({
+          ...course,
+          categories: categoriesResult.data?.find(cat => cat.id === course.category_id) || { name: 'General' },
+          instructors: instructorsResult.data?.find(inst => inst.id === course.instructor_id) || {
+            id: '',
+            name: 'Unknown Instructor',
+            title: 'Instructor',
+            avatar_url: null
+          }
+        }));
+      } else if (error) {
         console.error('Error fetching recommended courses:', error);
         return [];
       }
@@ -133,7 +203,8 @@ export class DataService {
 
   static async getCoursesByCategory(categoryId: string): Promise<Course[]> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('courses')
         .select(`
           *,
@@ -143,7 +214,40 @@ export class DataService {
         .eq('category_id', categoryId)
         .eq('is_published', true);
 
-      if (error) {
+      // If the join fails due to missing foreign key relationships, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        // Get courses without joins
+        const coursesResult = await supabase
+          .from('courses')
+          .select('*')
+          .eq('category_id', categoryId)
+          .eq('is_published', true);
+
+        if (coursesResult.error) {
+          console.error('Error fetching courses:', coursesResult.error);
+          return [];
+        }
+
+        // Get categories and instructors separately
+        const [categoriesResult, instructorsResult] = await Promise.all([
+          supabase.from('categories').select('*'),
+          supabase.from('instructors').select('*')
+        ]);
+
+        // Combine the data manually
+        data = coursesResult.data.map(course => ({
+          ...course,
+          categories: categoriesResult.data?.find(cat => cat.id === course.category_id) || { name: 'General' },
+          instructors: instructorsResult.data?.find(inst => inst.id === course.instructor_id) || {
+            id: '',
+            name: 'Unknown Instructor',
+            title: 'Instructor',
+            avatar_url: null
+          }
+        }));
+      } else if (error) {
         console.error('Error fetching courses by category:', error);
         return [];
       }
@@ -171,7 +275,8 @@ export class DataService {
 
   static async getCourseById(id: string): Promise<Course | null> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('courses')
         .select(`
           *,
@@ -182,7 +287,43 @@ export class DataService {
         .eq('id', id)
         .single();
 
-      if (error) {
+      // If the join fails due to missing foreign key relationships, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        // Get course without joins
+        const courseResult = await supabase
+          .from('courses')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (courseResult.error) {
+          console.error('Error fetching course:', courseResult.error);
+          return null;
+        }
+
+        // Get related data separately
+        const [categoriesResult, instructorsResult, lessonsResult] = await Promise.all([
+          supabase.from('categories').select('*').eq('id', courseResult.data.category_id).single(),
+          supabase.from('instructors').select('*').eq('id', courseResult.data.instructor_id).single(),
+          supabase.from('lessons').select('id, title, duration_minutes, content_type, is_preview').eq('course_id', id)
+        ]);
+
+        // Combine the data manually
+        data = {
+          ...courseResult.data,
+          categories: categoriesResult.data || { name: 'General' },
+          instructors: instructorsResult.data || {
+            id: '',
+            name: 'Unknown Instructor',
+            title: 'Instructor',
+            avatar_url: null,
+            bio: null
+          },
+          lessons: lessonsResult.data || []
+        };
+      } else if (error) {
         console.error('Error fetching course:', error);
         return null;
       }
@@ -246,7 +387,8 @@ export class DataService {
   // Coaching Sessions
   static async getUpcomingCoachingSessions(userId: string): Promise<CoachingSession[]> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('coaching_sessions')
         .select(`
           *,
@@ -256,7 +398,36 @@ export class DataService {
         .eq('status', 'scheduled')
         .order('scheduled_at');
 
-      if (error) {
+      // If the join fails, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        const sessionsResult = await supabase
+          .from('coaching_sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('status', 'scheduled')
+          .order('scheduled_at');
+
+        if (sessionsResult.error) {
+          console.error('Error fetching coaching sessions:', sessionsResult.error);
+          return [];
+        }
+
+        const instructorsResult = await supabase
+          .from('instructors')
+          .select('*');
+
+        data = sessionsResult.data.map(session => ({
+          ...session,
+          instructors: instructorsResult.data?.find(inst => inst.id === session.coach_id) || {
+            id: '',
+            name: 'Unknown Coach',
+            title: 'Coach',
+            avatar_url: null
+          }
+        }));
+      } else if (error) {
         console.error('Error fetching coaching sessions:', error);
         return [];
       }
@@ -356,7 +527,8 @@ export class DataService {
   // Learning Paths
   static async getLearningPaths(): Promise<LearningPath[]> {
     try {
-      const { data, error } = await supabase
+      // First, try the original query with joins
+      let { data, error } = await supabase
         .from('learning_paths')
         .select(`
           *,
@@ -371,7 +543,57 @@ export class DataService {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
+      // If the join fails, fall back to separate queries
+      if (error && error.message.includes('relationship')) {
+        console.warn('Foreign key relationship missing, using fallback query method');
+        
+        const pathsResult = await supabase
+          .from('learning_paths')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (pathsResult.error) {
+          console.error('Error fetching learning paths:', pathsResult.error);
+          return [];
+        }
+
+        // Get path courses and related data separately
+        const pathCoursesResult = await supabase
+          .from('learning_path_courses')
+          .select('*');
+
+        const [coursesResult, categoriesResult, instructorsResult] = await Promise.all([
+          supabase.from('courses').select('*'),
+          supabase.from('categories').select('*'),
+          supabase.from('instructors').select('*')
+        ]);
+
+        // Combine the data manually
+        data = pathsResult.data.map(path => ({
+          ...path,
+          learning_path_courses: pathCoursesResult.data
+            ?.filter(pc => pc.learning_path_id === path.id)
+            .map(pc => {
+              const course = coursesResult.data?.find(c => c.id === pc.course_id);
+              if (!course) return null;
+              
+              return {
+                order_index: pc.order_index,
+                courses: {
+                  ...course,
+                  categories: categoriesResult.data?.find(cat => cat.id === course.category_id) || { name: 'General' },
+                  instructors: instructorsResult.data?.find(inst => inst.id === course.instructor_id) || {
+                    id: '',
+                    name: 'Unknown Instructor',
+                    title: 'Instructor',
+                    avatar_url: null
+                  }
+                }
+              };
+            })
+            .filter(Boolean) || []
+        }));
+      } else if (error) {
         console.error('Error fetching learning paths:', error);
         return [];
       }
