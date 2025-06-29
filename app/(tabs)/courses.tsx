@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,14 +22,11 @@ import { ModernCard } from '@/components/ui/ModernCard';
 import { InteractiveCard } from '@/components/ui/InteractiveCard';
 import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { Badge } from '@/components/ui/Badge';
-import { categories, featuredCourses, recommendedCourses } from '@/data/mockData';
+import { DataService } from '@/services/DataService';
 import { Course } from '@/types/course';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
 
 const { width: screenWidth } = Dimensions.get('window');
-
-// Combine all courses for display
-const allCourses = [...featuredCourses, ...recommendedCourses];
 
 export default function CoursesScreen() {
   const router = useRouter();
@@ -42,7 +39,42 @@ export default function CoursesScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
 
+  const [categories, setCategories] = useState([]);
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const levels = ['beginner', 'intermediate', 'advanced'];
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [categoriesData, featuredCoursesData, recommendedCoursesData] = await Promise.all([
+        DataService.getCategories(),
+        DataService.getFeaturedCourses(),
+        DataService.getRecommendedCourses()
+      ]);
+      
+      setCategories(categoriesData);
+      setFeaturedCourses(featuredCoursesData);
+      
+      // Combine featured and recommended courses for all courses list
+      // Remove duplicates by creating a Map with course ID as key
+      const coursesMap = new Map();
+      [...featuredCoursesData, ...recommendedCoursesData].forEach(course => {
+        coursesMap.set(course.id, course);
+      });
+      setAllCourses(Array.from(coursesMap.values()));
+    } catch (error) {
+      console.error('Error fetching courses data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter courses based on search, categories, and level
   const filteredCourses = allCourses.filter(course => {
@@ -63,8 +95,7 @@ export default function CoursesScreen() {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // Simulate refresh
-    setTimeout(() => setRefreshing(false), 1000);
+    fetchData().finally(() => setRefreshing(false));
   }, []);
 
   const toggleCategoryFilter = (category: string) => {
@@ -92,7 +123,7 @@ export default function CoursesScreen() {
     router.push('/categories');
   };
 
-  const renderCategoryFilter = ({ item }: { item: typeof categories[0] }) => (
+  const renderCategoryFilter = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={[
         styles.filterChip,
@@ -218,24 +249,26 @@ export default function CoursesScreen() {
           </Animated.View>
 
           {/* Featured Courses */}
-          <Animated.View entering={FadeInUp.delay(400).duration(500)} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Courses</Text>
-              <Badge label="New" variant="primary" size="small" />
-            </View>
-            
-            <FlatList
-              data={featuredCourses}
-              renderItem={renderFeaturedCourse}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.featuredList}
-              snapToInterval={screenWidth * 0.85}
-              snapToAlignment="start"
-              decelerationRate="fast"
-            />
-          </Animated.View>
+          {featuredCourses.length > 0 && (
+            <Animated.View entering={FadeInUp.delay(400).duration(500)} style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Courses</Text>
+                <Badge label="New" variant="primary" size="small" />
+              </View>
+              
+              <FlatList
+                data={featuredCourses}
+                renderItem={renderFeaturedCourse}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.featuredList}
+                snapToInterval={screenWidth * 0.85}
+                snapToAlignment="start"
+                decelerationRate="fast"
+              />
+            </Animated.View>
+          )}
 
           {/* Category Filters */}
           <Animated.View entering={FadeInUp.delay(500).duration(500)} style={styles.filtersContainer}>
@@ -328,7 +361,11 @@ export default function CoursesScreen() {
 
           {/* Course List */}
           <Animated.View entering={FadeInUp.delay(700).duration(500)} style={styles.coursesSection}>
-            {filteredCourses.length === 0 ? (
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading courses...</Text>
+              </View>
+            ) : filteredCourses.length === 0 ? (
               <InteractiveCard
                 title="No courses found"
                 subtitle="Try adjusting your search or filters"
@@ -541,6 +578,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
   },
   bottomSpacing: {
     height: 100,

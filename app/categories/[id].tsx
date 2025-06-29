@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -17,97 +17,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { SearchBar } from '@/components/ui/SearchBar';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { DataService } from '@/services/DataService';
+import { Course } from '@/types/course';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  instructor: {
-    name: string;
-    avatar: string;
-  };
-  duration: number; // in minutes
-  lessonsCount: number;
-  rating: number;
-  reviewsCount: number;
-  price?: number;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  enrolledCount: number;
-  isFeatured?: boolean;
-}
-
-// Mock data for category courses
-const getCategoryData = (categoryId: string) => {
-  const categoryInfo = {
-    design: {
-      name: 'Design',
-      description: 'Master the art of visual communication and user experience design',
-      color: '#EC4899',
-      courses: [
-        {
-          id: 'd1',
-          title: 'UI/UX Design Fundamentals',
-          description: 'Learn the core principles of user interface and user experience design',
-          thumbnail: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
-          instructor: { name: 'Sarah Johnson', avatar: 'https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=400' },
-          duration: 480,
-          lessonsCount: 24,
-          rating: 4.8,
-          reviewsCount: 342,
-          price: 89.99,
-          level: 'beginner' as const,
-          enrolledCount: 2150,
-          isFeatured: true
-        },
-        {
-          id: 'd2',
-          title: 'Advanced Figma Mastery',
-          description: 'Master advanced Figma techniques for professional design workflows',
-          thumbnail: 'https://images.pexels.com/photos/196645/pexels-photo-196645.jpeg?auto=compress&cs=tinysrgb&w=800',
-          instructor: { name: 'Alex Chen', avatar: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=400' },
-          duration: 360,
-          lessonsCount: 18,
-          rating: 4.9,
-          reviewsCount: 198,
-          price: 129.99,
-          level: 'advanced' as const,
-          enrolledCount: 1420
-        }
-      ]
-    },
-    development: {
-      name: 'Development',
-      description: 'Build amazing applications with modern programming languages and frameworks',
-      color: '#3B82F6',
-      courses: [
-        {
-          id: 'dev1',
-          title: 'React Native Mobile Development',
-          description: 'Build cross-platform mobile apps with React Native and Expo',
-          thumbnail: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
-          instructor: { name: 'Michael Rodriguez', avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400' },
-          duration: 720,
-          lessonsCount: 36,
-          rating: 4.7,
-          reviewsCount: 567,
-          price: 149.99,
-          level: 'intermediate' as const,
-          enrolledCount: 3240,
-          isFeatured: true
-        }
-      ]
-    }
-  };
-
-  return categoryInfo[categoryId as keyof typeof categoryInfo] || {
-    name: 'Category',
-    description: 'Explore courses in this category',
-    color: '#6B7280',
-    courses: []
-  };
-};
 
 export default function CategoryDetailScreen() {
   const router = useRouter();
@@ -119,8 +31,30 @@ export default function CategoryDetailScreen() {
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'popular' | 'rating' | 'newest'>('popular');
 
-  const categoryData = getCategoryData(id || '');
-  const { name, description, color, courses } = categoryData;
+  const [category, setCategory] = useState<any>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCategoryData = async () => {
+      setLoading(true);
+      try {
+        const categoryData = await DataService.getCategoryById(id || '');
+        setCategory(categoryData);
+
+        const coursesData = await DataService.getCoursesByCategory(id || '');
+        setCourses(coursesData);
+      } catch (error) {
+        console.error('Error fetching category data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchCategoryData();
+    }
+  }, [id]);
 
   // Filter and sort courses
   const filteredCourses = courses.filter(course => {
@@ -178,7 +112,7 @@ export default function CategoryDetailScreen() {
         <Image source={{ uri: course.thumbnail }} style={styles.courseImage} />
         
         {course.isFeatured && (
-          <View style={[styles.featuredBadge, { backgroundColor: color }]}>
+          <View style={[styles.featuredBadge, { backgroundColor: category?.color || colors.primary[500] }]}>
             <Text style={styles.featuredText}>Featured</Text>
           </View>
         )}
@@ -247,7 +181,7 @@ export default function CategoryDetailScreen() {
               icon={<Play size={16} color="white" />}
               iconPosition="left"
               onPress={() => handleCoursePress(course.id)}
-              style={[styles.startButton, { backgroundColor: color }]}
+              style={[styles.startButton, { backgroundColor: category?.color || colors.primary[500] }]}
             />
           </View>
         </View>
@@ -271,9 +205,9 @@ export default function CategoryDetailScreen() {
           </TouchableOpacity>
           
           <View style={styles.headerContent}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>{name}</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>{category?.name || 'Category'}</Text>
             <Text style={[styles.headerDescription, { color: colors.textSecondary }]}>
-              {description}
+              {category?.description || 'Explore courses in this category'}
             </Text>
           </View>
         </Animated.View>
@@ -281,7 +215,7 @@ export default function CategoryDetailScreen() {
         {/* Search and Filters */}
         <Animated.View entering={FadeInUp.delay(100).duration(400)}>
           <SearchBar
-            placeholder={`Search ${name.toLowerCase()} courses...`}
+            placeholder={`Search ${category?.name?.toLowerCase() || 'category'} courses...`}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -353,7 +287,16 @@ export default function CategoryDetailScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.coursesContent}
         >
-          {sortedCourses.length === 0 ? (
+          {loading ? (
+            <Animated.View 
+              entering={FadeInUp.delay(300).duration(400)}
+              style={styles.loadingContainer}
+            >
+              <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                Loading courses...
+              </Text>
+            </Animated.View>
+          ) : sortedCourses.length === 0 ? (
             <Animated.View 
               entering={FadeInUp.delay(300).duration(400)}
               style={styles.emptyState}
@@ -448,6 +391,13 @@ const styles = StyleSheet.create({
   },
   coursesContent: {
     paddingHorizontal: 16,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
   },
   courseCard: {
     marginBottom: 16,

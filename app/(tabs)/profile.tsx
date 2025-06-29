@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -16,7 +16,7 @@ import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, U
 import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
-import { achievements, recentActivities, learningPaths } from '@/data/mockData';
+import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 
 interface SettingItemProps {
@@ -54,12 +54,41 @@ export default function ProfileScreen() {
   const { isDarkMode, toggleTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const [notifications, setNotifications] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [achievements, setAchievements] = useState([]);
+  const [learningPaths, setLearningPaths] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Mock integration status
   const [integrationStatus, setIntegrationStatus] = useState({
     github: { connected: true, lastSync: '2025-01-15T10:30:00Z' },
     linkedin: { connected: true, lastSync: '2025-01-15T09:15:00Z' },
   });
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setLoading(true);
+      try {
+        // In a real app, you would get the user ID from auth
+        const userId = 'current-user-id';
+        
+        // Fetch achievements and learning paths
+        const [achievementsData, learningPathsData] = await Promise.all([
+          DataService.getAchievements(userId),
+          DataService.getLearningPaths()
+        ]);
+        
+        setAchievements(achievementsData);
+        setLearningPaths(learningPathsData);
+      } catch (error) {
+        console.error('Error fetching profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []);
 
   const handleProfileIntegration = () => {
     router.push('/profile-integration');
@@ -216,35 +245,49 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
             
-            {learningPaths.map((path, index) => (
-              <Animated.View
-                key={path.id}
-                entering={FadeInRight.delay(500 + index * 100).duration(500)}
-                style={[styles.learningPathCard, { backgroundColor: colors.background }]}
-              >
-                <View style={styles.pathInfo}>
-                  <Text style={[styles.pathTitle, { color: colors.text }]}>{path.title}</Text>
-                  <Text style={[styles.pathDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-                    {path.description}
-                  </Text>
-                  <View style={styles.pathMetaData}>
-                    <BookOpen size={14} color={colors.neutral[500]} />
-                    <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>{path.courses.length} courses</Text>
-                    <Clock size={14} color={colors.neutral[500]} style={{ marginLeft: 12 }} />
-                    <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>
-                      {path.courses.reduce((total, course) => total + course.duration, 0) / 60} hours
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  Loading learning paths...
+                </Text>
+              </View>
+            ) : learningPaths.length === 0 ? (
+              <View style={styles.emptyStateContainer}>
+                <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                  No learning paths found
+                </Text>
+              </View>
+            ) : (
+              learningPaths.slice(0, 2).map((path, index) => (
+                <Animated.View
+                  key={path.id}
+                  entering={FadeInRight.delay(500 + index * 100).duration(500)}
+                  style={[styles.learningPathCard, { backgroundColor: colors.background }]}
+                >
+                  <View style={styles.pathInfo}>
+                    <Text style={[styles.pathTitle, { color: colors.text }]}>{path.title}</Text>
+                    <Text style={[styles.pathDescription, { color: colors.textSecondary }]} numberOfLines={2}>
+                      {path.description}
                     </Text>
+                    <View style={styles.pathMetaData}>
+                      <BookOpen size={14} color={colors.neutral[500]} />
+                      <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>{path.courses.length} courses</Text>
+                      <Clock size={14} color={colors.neutral[500]} style={{ marginLeft: 12 }} />
+                      <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>
+                        {path.courses.reduce((total, course) => total + course.duration, 0) / 60} hours
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                
-                <View style={styles.pathProgress}>
-                  <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
-                    <View style={[styles.progressFill, { backgroundColor: colors.primary[500], width: `${path.progress}%` }]} />
+                  
+                  <View style={styles.pathProgress}>
+                    <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
+                      <View style={[styles.progressFill, { backgroundColor: colors.primary[500], width: `${path.progress}%` }]} />
+                    </View>
+                    <Text style={[styles.progressText, { color: colors.textSecondary }]}>{path.progress}%</Text>
                   </View>
-                  <Text style={[styles.progressText, { color: colors.textSecondary }]}>{path.progress}%</Text>
-                </View>
-              </Animated.View>
-            ))}
+                </Animated.View>
+              ))
+            )}
           </Animated.View>
           
           {/* Achievements */}
@@ -257,86 +300,49 @@ export default function ProfileScreen() {
             </View>
             
             <View style={styles.achievementsContainer}>
-              {achievements.map((achievement, index) => (
-                <Animated.View
-                  key={achievement.id}
-                  entering={FadeInUp.delay(700 + index * 100).duration(500)}
-                  style={[styles.achievementCard, { backgroundColor: colors.background }]}
-                >
-                  <View style={[
-                    styles.achievementIconContainer,
-                    { backgroundColor: achievement.completed ? colors.success[500] : colors.neutral[200] }
-                  ]}>
-                    <Award
-                      size={24}
-                      color={achievement.completed ? 'white' : colors.neutral[400]}
-                    />
-                  </View>
-                  <Text style={[styles.achievementTitle, { color: colors.text }]}>{achievement.title}</Text>
-                  <View style={[styles.achievementProgressBar, { backgroundColor: colors.neutral[200] }]}>
-                    <View 
-                      style={[
-                        styles.achievementProgressFill, 
-                        { backgroundColor: colors.success[500], width: `${achievement.progress}%` }
-                      ]} 
-                    />
-                  </View>
-                </Animated.View>
-              ))}
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                    Loading achievements...
+                  </Text>
+                </View>
+              ) : achievements.length === 0 ? (
+                <View style={styles.emptyStateContainer}>
+                  <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                    No achievements found
+                  </Text>
+                </View>
+              ) : (
+                achievements.slice(0, 3).map((achievement, index) => (
+                  <Animated.View
+                    key={achievement.id}
+                    entering={FadeInUp.delay(700 + index * 100).duration(500)}
+                    style={[styles.achievementCard, { backgroundColor: colors.background }]}
+                  >
+                    <View style={[
+                      styles.achievementIconContainer,
+                      { backgroundColor: achievement.completed ? colors.success[500] : colors.neutral[200] }
+                    ]}>
+                      <Award
+                        size={24}
+                        color={achievement.completed ? 'white' : colors.neutral[400]}
+                      />
+                    </View>
+                    <Text style={[styles.achievementTitle, { color: colors.text }]}>{achievement.title}</Text>
+                    <View style={[styles.achievementProgressBar, { backgroundColor: colors.neutral[200] }]}>
+                      <View 
+                        style={[
+                          styles.achievementProgressFill, 
+                          { backgroundColor: colors.success[500], width: `${achievement.progress}%` }
+                        ]} 
+                      />
+                    </View>
+                  </Animated.View>
+                ))
+              )}
             </View>
           </Animated.View>
           
-          {/* Recent Activity */}
-          <Animated.View entering={FadeInUp.delay(800).duration(500)} style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
-            </View>
-            
-            {recentActivities.map((activity, index) => (
-              <Animated.View
-                key={activity.id}
-                entering={FadeInRight.delay(900 + index * 100).duration(500)}
-                style={[styles.activityItem, { borderBottomColor: colors.neutral[100] }]}
-              >
-                <View 
-                  style={[
-                    styles.activityIconContainer,
-                    activity.type === 'course_progress' && { backgroundColor: colors.primary[500] },
-                    activity.type === 'achievement' && { backgroundColor: colors.warning[500] },
-                    activity.type === 'coaching' && { backgroundColor: colors.accent[500] }
-                  ]}
-                >
-                  {activity.type === 'course_progress' && <BookOpen size={16} color="white" />}
-                  {activity.type === 'achievement' && <Award size={16} color="white" />}
-                  {activity.type === 'coaching' && <Clock size={16} color="white" />}
-                </View>
-                
-                <View style={styles.activityContent}>
-                  <Text style={[styles.activityTitle, { color: colors.text }]}>{activity.title}</Text>
-                  <Text style={[styles.activityDescription, { color: colors.textSecondary }]}>{activity.description}</Text>
-                  <Text style={[styles.activityTime, { color: colors.neutral[500] }]}>{activity.time}</Text>
-                </View>
-              </Animated.View>
-            ))}
-          </Animated.View>
-          
-          {/* Analytics Section */}
-          <Animated.View entering={FadeInUp.delay(1000).duration(500)}>
-            <TouchableOpacity style={[styles.analyticsCard, { backgroundColor: colors.neutral[50] }]}>
-              <View style={styles.analyticsHeader}>
-                <BarChart size={20} color={colors.primary[500]} />
-                <Text style={[styles.analyticsTitle, { color: colors.text }]}>Learning Analytics</Text>
-              </View>
-              <Text style={[styles.analyticsDescription, { color: colors.textSecondary }]}>
-                Track your progress and get insights into your learning habits
-              </Text>
-              <View style={styles.analyticsAction}>
-                <Text style={[styles.analyticsActionText, { color: colors.primary[500] }]}>View Analytics</Text>
-                <ChevronRight size={16} color={colors.primary[500]} />
-              </View>
-            </TouchableOpacity>
-          </Animated.View>
-
           {/* Settings Section */}
           <Animated.View entering={FadeInUp.delay(1100).duration(500)} style={styles.sectionContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
@@ -648,6 +654,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+  },
+  emptyStateContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
   learningPathCard: {
     borderRadius: 12,
     padding: 16,
@@ -735,64 +756,6 @@ const styles = StyleSheet.create({
   achievementProgressFill: {
     height: '100%',
     borderRadius: 2,
-  },
-  activityItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  activityIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  activityDescription: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
-  activityTime: {
-    fontSize: 12,
-  },
-  analyticsCard: {
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 24,
-  },
-  analyticsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  analyticsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  analyticsDescription: {
-    fontSize: 14,
-    marginBottom: 12,
-  },
-  analyticsAction: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  analyticsActionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginRight: 4,
   },
   settingItem: {
     flexDirection: 'row',

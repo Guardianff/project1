@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -16,7 +16,8 @@ import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { upcomingCoachingSessions } from '@/data/mockData';
+import { DataService } from '@/services/DataService';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function CoachingScreen() {
   const insets = useSafeAreaInsets();
@@ -24,6 +25,26 @@ export default function CoachingScreen() {
   const screenWidth = Dimensions.get('window').width;
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const [upcomingCoachingSessions, setUpcomingCoachingSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCoachingSessions = async () => {
+      setLoading(true);
+      try {
+        // In a real app, you would get the user ID from auth
+        const userId = 'current-user-id';
+        const sessions = await DataService.getUpcomingCoachingSessions(userId);
+        setUpcomingCoachingSessions(sessions);
+      } catch (error) {
+        console.error('Error fetching coaching sessions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCoachingSessions();
+  }, []);
 
   // Simplified calendar days
   const getDaysInWeek = () => {
@@ -154,72 +175,95 @@ export default function CoachingScreen() {
           <View style={styles.sessionsContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Sessions</Text>
             
-            {upcomingCoachingSessions.map((session) => (
-              <View key={session.id} style={[styles.sessionCard, { backgroundColor: colors.background }]}>
-                <View style={styles.sessionHeader}>
-                  <View style={styles.sessionDateTime}>
-                    <View style={styles.sessionDateContainer}>
-                      <CalendarIcon size={16} color={colors.primary[500]} />
-                      <Text style={[styles.sessionDate, { color: colors.text }]}>{formatDate(session.date)}</Text>
+            {loading ? (
+              <Animated.View entering={FadeInUp.duration(400)} style={styles.loadingContainer}>
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  Loading coaching sessions...
+                </Text>
+              </Animated.View>
+            ) : upcomingCoachingSessions.length === 0 ? (
+              <Animated.View entering={FadeInUp.duration(400)} style={styles.emptyStateContainer}>
+                <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                  No upcoming coaching sessions found
+                </Text>
+                <Button
+                  title="Schedule a Session"
+                  variant="primary"
+                  size="small"
+                  onPress={() => {}}
+                  style={styles.scheduleButton}
+                />
+              </Animated.View>
+            ) : (
+              upcomingCoachingSessions.map((session) => (
+                <Animated.View key={session.id} entering={FadeInUp.duration(400)}>
+                  <View style={[styles.sessionCard, { backgroundColor: colors.background }]}>
+                    <View style={styles.sessionHeader}>
+                      <View style={styles.sessionDateTime}>
+                        <View style={styles.sessionDateContainer}>
+                          <CalendarIcon size={16} color={colors.primary[500]} />
+                          <Text style={[styles.sessionDate, { color: colors.text }]}>{formatDate(session.date)}</Text>
+                        </View>
+                        <View style={styles.sessionTimeContainer}>
+                          <Clock size={16} color={colors.primary[500]} />
+                          <Text style={[styles.sessionTime, { color: colors.textSecondary }]}>
+                            {formatTime(session.time)} • {session.duration} min
+                          </Text>
+                        </View>
+                      </View>
+                      <Badge
+                        label="Upcoming"
+                        variant="success"
+                        size="small"
+                      />
                     </View>
-                    <View style={styles.sessionTimeContainer}>
-                      <Clock size={16} color={colors.primary[500]} />
-                      <Text style={[styles.sessionTime, { color: colors.textSecondary }]}>
-                        {formatTime(session.time)} • {session.duration} min
-                      </Text>
+                    
+                    <Text style={[styles.sessionTitle, { color: colors.text }]}>{session.title}</Text>
+                    
+                    <View style={styles.coachContainer}>
+                      <Image 
+                        source={{ uri: session.coach.avatar }} 
+                        style={styles.coachAvatar} 
+                      />
+                      <View style={styles.coachInfo}>
+                        <Text style={[styles.coachName, { color: colors.text }]}>{session.coach.name}</Text>
+                        <Text style={[styles.coachTitle, { color: colors.textSecondary }]}>{session.coach.title}</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.sessionActions}>
+                      <Button
+                        title="Join Meeting"
+                        variant="primary"
+                        size="small"
+                        icon={<Video size={16} color="white" />}
+                        iconPosition="left"
+                        onPress={() => {}}
+                        style={[styles.joinButton, { backgroundColor: colors.accent[600] }]}
+                      />
+                      <View style={styles.secondaryActions}>
+                        <Button
+                          title="Reschedule"
+                          variant="outline"
+                          size="small"
+                          onPress={() => {}}
+                          style={styles.actionButton}
+                        />
+                        <Button
+                          title="Notes"
+                          variant="ghost"
+                          size="small"
+                          icon={<Edit size={16} color={colors.primary[500]} />}
+                          iconPosition="left"
+                          onPress={() => {}}
+                          style={styles.actionButton}
+                        />
+                      </View>
                     </View>
                   </View>
-                  <Badge
-                    label="Upcoming"
-                    variant="success"
-                    size="small"
-                  />
-                </View>
-                
-                <Text style={[styles.sessionTitle, { color: colors.text }]}>{session.title}</Text>
-                
-                <View style={styles.coachContainer}>
-                  <Image 
-                    source={{ uri: session.coach.avatar }} 
-                    style={styles.coachAvatar} 
-                  />
-                  <View style={styles.coachInfo}>
-                    <Text style={[styles.coachName, { color: colors.text }]}>{session.coach.name}</Text>
-                    <Text style={[styles.coachTitle, { color: colors.textSecondary }]}>{session.coach.title}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.sessionActions}>
-                  <Button
-                    title="Join Meeting"
-                    variant="primary"
-                    size="small"
-                    icon={<Video size={16} color="white" />}
-                    iconPosition="left"
-                    onPress={() => {}}
-                    style={[styles.joinButton, { backgroundColor: colors.accent[600] }]}
-                  />
-                  <View style={styles.secondaryActions}>
-                    <Button
-                      title="Reschedule"
-                      variant="outline"
-                      size="small"
-                      onPress={() => {}}
-                      style={styles.actionButton}
-                    />
-                    <Button
-                      title="Notes"
-                      variant="ghost"
-                      size="small"
-                      icon={<Edit size={16} color={colors.primary[500]} />}
-                      iconPosition="left"
-                      onPress={() => {}}
-                      style={styles.actionButton}
-                    />
-                  </View>
-                </View>
-              </View>
-            ))}
+                </Animated.View>
+              ))
+            )}
             
             {/* Find a coach section */}
             <View style={[styles.findCoachSection, { backgroundColor: colors.primary[50] }]}>
@@ -355,6 +399,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 16,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+  },
+  emptyStateContainer: {
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  scheduleButton: {
+    minWidth: 200,
   },
   sessionCard: {
     borderRadius: 12,

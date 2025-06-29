@@ -15,6 +15,7 @@ import { PersonalizedDashboard } from '@/components/dashboard/PersonalizedDashbo
 import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget';
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
+import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
 
 const screenWidth = Dimensions.get('window').width;
@@ -36,10 +37,30 @@ export default function HomeScreen() {
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
 
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   // Update time every minute for dynamic greetings
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Fetch data from database
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const coursesData = await DataService.getFeaturedCourses();
+        setFeaturedCourses(coursesData);
+      } catch (error) {
+        console.error('Error fetching home data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   // Dynamic greeting based on time
@@ -92,45 +113,6 @@ export default function HomeScreen() {
     progress: 75,
   };
 
-  const quickActions = [
-    { 
-      id: 'continue-learning', 
-      title: 'Continue Learning', 
-      subtitle: 'Pick up where you left off',
-      icon: <BookOpen size={24} color="white" />, 
-      gradient: ['#3B82F6', '#06B6D4'],
-      stats: '12 min left',
-      priority: 'high',
-    },
-    { 
-      id: 'daily-challenge', 
-      title: 'Daily Challenge', 
-      subtitle: 'Complete today\'s goal',
-      icon: <Target size={24} color="white" />, 
-      gradient: ['#10B981', '#22C55E'],
-      stats: '2/3 done',
-      priority: 'high',
-    },
-    { 
-      id: 'workout', 
-      title: 'Quick Workout', 
-      subtitle: 'Boost your energy',
-      icon: <Dumbbell size={24} color="white" />, 
-      gradient: ['#F59E0B', '#EF4444'],
-      stats: '15 min',
-      priority: 'medium',
-    },
-    { 
-      id: 'ai-tutor', 
-      title: 'AI Tutor', 
-      subtitle: 'Get instant help',
-      icon: <Zap size={24} color="white" />, 
-      gradient: ['#8B5CF6', '#EC4899'],
-      stats: 'Available',
-      priority: 'medium',
-    },
-  ];
-
   const progressStats = [
     { 
       label: 'Learning Streak', 
@@ -165,31 +147,6 @@ export default function HomeScreen() {
     { id: 'tired', icon: <Frown size={28} color={colors.neutral[500]} />, label: 'Tired', color: colors.neutral[500] },
   ];
 
-  const featuredCourses = [
-    {
-      id: '1',
-      title: 'Advanced React Native',
-      instructor: 'Sarah Johnson',
-      progress: 65,
-      rating: 4.8,
-      students: 1234,
-      image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
-      timeLeft: '2h 15m',
-      difficulty: 'Advanced',
-    },
-    {
-      id: '2',
-      title: 'UI/UX Design Mastery',
-      instructor: 'Michael Chen',
-      progress: 30,
-      rating: 4.9,
-      students: 856,
-      image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
-      timeLeft: '4h 30m',
-      difficulty: 'Intermediate',
-    },
-  ];
-
   const handleNotificationPress = () => {
     router.push('/notifications');
   };
@@ -197,23 +154,6 @@ export default function HomeScreen() {
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
     // Here you would typically save this to user preferences/analytics
-  };
-
-  const handleQuickAction = (actionId: string) => {
-    switch (actionId) {
-      case 'continue-learning':
-        router.push('/courses');
-        break;
-      case 'daily-challenge':
-        // Navigate to challenges
-        break;
-      case 'workout':
-        // Navigate to fitness
-        break;
-      case 'ai-tutor':
-        router.push('/ai-assistant');
-        break;
-    }
   };
 
   return (
@@ -335,10 +275,13 @@ export default function HomeScreen() {
 
           {/* Smart Quick Actions */}
           <Animated.View entering={FadeInUp.delay(800).duration(600)}>
-            <QuickActionsGrid 
-              actions={quickActions}
-              onActionPress={handleQuickAction}
-            />
+            <QuickActionsGrid onActionPress={(actionId) => {
+              if (actionId === 'continue-learning') {
+                router.push('/courses');
+              } else if (actionId === 'ai-tutor') {
+                router.push('/ai-assistant');
+              }
+            }} />
           </Animated.View>
 
           {/* Mood Check-in */}
@@ -391,85 +334,87 @@ export default function HomeScreen() {
           </Animated.View>
 
           {/* Enhanced Featured Courses */}
-          <Animated.View entering={FadeInUp.delay(1400).duration(600)} style={styles.featuredSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Continue Learning</Text>
-              <TouchableOpacity onPress={() => router.push('/courses')}>
-                <Text style={[styles.seeAllText, { color: colors.primary[500] }]}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.featuredList}
-            >
-              {featuredCourses.map((course, index) => (
-                <Animated.View
-                  key={course.id}
-                  entering={FadeInRight.delay(1500 + index * 200).duration(600)}
-                  style={styles.featuredCourseCard}
-                >
-                  <EnhancedCard
-                    variant="elevated"
-                    interactive
-                    glowEffect
-                    onPress={() => {}}
-                    style={styles.courseCard}
+          {!loading && featuredCourses.length > 0 && (
+            <Animated.View entering={FadeInUp.delay(1400).duration(600)} style={styles.featuredSection}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Continue Learning</Text>
+                <TouchableOpacity onPress={() => router.push('/courses')}>
+                  <Text style={[styles.seeAllText, { color: colors.primary[500] }]}>See All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.featuredList}
+              >
+                {featuredCourses.map((course, index) => (
+                  <Animated.View
+                    key={course.id}
+                    entering={FadeInRight.delay(1500 + index * 200).duration(600)}
+                    style={styles.featuredCourseCard}
                   >
-                    <View style={styles.courseImageContainer}>
-                      <View 
-                        style={[
-                          styles.courseImage,
-                          { backgroundColor: colors.neutral[200] }
-                        ]}
-                      />
-                      <View style={styles.courseOverlay}>
-                        <View style={[styles.playButton, { backgroundColor: colors.primary[500] }]}>
-                          <Play size={16} color="white" />
+                    <EnhancedCard
+                      variant="elevated"
+                      interactive
+                      glowEffect
+                      onPress={() => router.push(`/course/${course.id}`)}
+                      style={styles.courseCard}
+                    >
+                      <View style={styles.courseImageContainer}>
+                        <View 
+                          style={[
+                            styles.courseImage,
+                            { backgroundColor: colors.neutral[200] }
+                          ]}
+                        />
+                        <View style={styles.courseOverlay}>
+                          <View style={[styles.playButton, { backgroundColor: colors.primary[500] }]}>
+                            <Play size={16} color="white" />
+                          </View>
                         </View>
-                      </View>
-                      <View style={[styles.difficultyBadge, { backgroundColor: colors.warning[500] }]}>
-                        <Text style={styles.difficultyText}>{course.difficulty}</Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.courseContent}>
-                      <Text style={[styles.courseTitle, { color: colors.text }]} numberOfLines={2}>
-                        {course.title}
-                      </Text>
-                      <Text style={[styles.courseInstructor, { color: colors.textSecondary }]}>
-                        {course.instructor}
-                      </Text>
-                      
-                      <View style={styles.courseStats}>
-                        <View style={styles.courseStat}>
-                          <Star size={12} color={colors.warning[500]} fill={colors.warning[500]} />
-                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
-                            {course.rating}
-                          </Text>
-                        </View>
-                        <View style={styles.courseStat}>
-                          <Clock size={12} color={colors.neutral[500]} />
-                          <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
-                            {course.timeLeft}
-                          </Text>
+                        <View style={[styles.difficultyBadge, { backgroundColor: colors.warning[500] }]}>
+                          <Text style={styles.difficultyText}>{course.level}</Text>
                         </View>
                       </View>
                       
-                      <ProgressIndicator
-                        progress={course.progress}
-                        size="sm"
-                        showLabel
-                        label={`${course.progress}% complete`}
-                        style={styles.courseProgress}
-                      />
-                    </View>
-                  </EnhancedCard>
-                </Animated.View>
-              ))}
-            </ScrollView>
-          </Animated.View>
+                      <View style={styles.courseContent}>
+                        <Text style={[styles.courseTitle, { color: colors.text }]} numberOfLines={2}>
+                          {course.title}
+                        </Text>
+                        <Text style={[styles.courseInstructor, { color: colors.textSecondary }]}>
+                          {course.instructor.name}
+                        </Text>
+                        
+                        <View style={styles.courseStats}>
+                          <View style={styles.courseStat}>
+                            <Star size={12} color={colors.warning[500]} fill={colors.warning[500]} />
+                            <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                              {course.rating}
+                            </Text>
+                          </View>
+                          <View style={styles.courseStat}>
+                            <Clock size={12} color={colors.neutral[500]} />
+                            <Text style={[styles.courseStatText, { color: colors.textSecondary }]}>
+                              {Math.floor(course.duration / 60)}h {course.duration % 60}m
+                            </Text>
+                          </View>
+                        </View>
+                        
+                        <ProgressIndicator
+                          progress={course.progress}
+                          size="sm"
+                          showLabel
+                          label={`${course.progress}% complete`}
+                          style={styles.courseProgress}
+                        />
+                      </View>
+                    </EnhancedCard>
+                  </Animated.View>
+                ))}
+              </ScrollView>
+            </Animated.View>
+          )}
 
           {/* Daily Tip with Enhanced Interaction */}
           <Animated.View entering={FadeInUp.delay(1600).duration(600)}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -46,6 +46,7 @@ import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
 
 interface DigitalBadge {
@@ -81,138 +82,6 @@ interface Resource {
   rating?: number;
 }
 
-const digitalBadges: DigitalBadge[] = [
-  {
-    id: 'badge1',
-    name: 'React Native Expert',
-    description: 'Demonstrated advanced proficiency in React Native development, including navigation, state management, and performance optimization.',
-    issuer: 'Meta Developer Certification',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-12-15',
-    verificationUrl: 'https://verify.meta.com/badge/react-native-expert',
-    isVerified: true,
-    category: 'Development',
-    skillLevel: 'expert',
-    credentialType: 'certification',
-    shareCount: 45,
-    viewCount: 234,
-    tags: ['React Native', 'Mobile Development', 'JavaScript', 'Cross-platform']
-  },
-  {
-    id: 'badge2',
-    name: 'UI/UX Design Professional',
-    description: 'Completed comprehensive training in user interface and user experience design principles, including user research and prototyping.',
-    issuer: 'Google Design Certificate',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-11-20',
-    verificationUrl: 'https://verify.google.com/badge/ux-design-pro',
-    isVerified: true,
-    category: 'Design',
-    skillLevel: 'advanced',
-    credentialType: 'certification',
-    shareCount: 32,
-    viewCount: 187,
-    tags: ['UI Design', 'UX Research', 'Prototyping', 'Figma']
-  },
-  {
-    id: 'badge3',
-    name: 'JavaScript Fundamentals',
-    description: 'Successfully completed foundational JavaScript programming course covering ES6+, DOM manipulation, and asynchronous programming.',
-    issuer: 'freeCodeCamp',
-    issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-    badgeImage: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=400',
-    dateEarned: '2024-10-05',
-    verificationUrl: 'https://verify.freecodecamp.org/badge/js-fundamentals',
-    isVerified: true,
-    category: 'Development',
-    skillLevel: 'intermediate',
-    credentialType: 'course_completion',
-    shareCount: 28,
-    viewCount: 156,
-    tags: ['JavaScript', 'Programming', 'Web Development', 'ES6']
-  }
-];
-
-const resources: Resource[] = [
-  {
-    id: '1',
-    title: 'Advanced Design System Kit',
-    description: 'Complete design system with 200+ components',
-    type: 'tool',
-    category: 'Design',
-    fileType: 'Figma File',
-    fileSize: '15.2 MB',
-    downloadUrl: '#',
-    icon: <Palette size={24} color="white" />,
-    color: '#8B5CF6',
-    downloads: 1250,
-    rating: 4.9
-  },
-  {
-    id: '2',
-    title: 'React Native Boilerplate',
-    description: 'Production-ready React Native starter template',
-    type: 'tool',
-    category: 'Development',
-    fileType: 'GitHub Repo',
-    fileSize: 'Online',
-    downloadUrl: '#',
-    icon: <Code size={24} color="white" />,
-    color: '#06B6D4',
-    downloads: 2100,
-    rating: 4.8
-  },
-  {
-    id: '3',
-    title: 'Mobile App Marketing Guide',
-    description: 'Complete guide to app store optimization',
-    type: 'guide',
-    category: 'Marketing',
-    fileType: 'PDF',
-    fileSize: '8.7 MB',
-    downloadUrl: '#',
-    icon: <TrendingUp size={24} color="white" />,
-    color: '#F59E0B',
-    downloads: 890,
-    rating: 4.7
-  },
-  {
-    id: '4',
-    title: 'User Research Toolkit',
-    description: 'Templates and methods for user research',
-    type: 'template',
-    category: 'Research',
-    fileType: 'Notion Template',
-    fileSize: 'Online',
-    downloadUrl: '#',
-    icon: <Target size={24} color="white" />,
-    color: '#EF4444',
-    downloads: 650,
-    rating: 4.6
-  }
-];
-
-const featuredResources = [
-  {
-    id: 'featured1',
-    title: 'Premium Design Assets',
-    subtitle: 'Exclusive collection of UI components',
-    image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
-    gradient: ['#8B5CF6', '#EC4899'],
-    icon: <Sparkles size={32} color="white" />
-  },
-  {
-    id: 'featured2',
-    title: 'Developer Tools Suite',
-    subtitle: 'Essential tools for modern development',
-    image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
-    gradient: ['#06B6D4', '#3B82F6'],
-    icon: <Zap size={32} color="white" />
-  }
-];
-
 export default function ResourcesScreen() {
   const insets = useSafeAreaInsets();
   const { isDarkMode } = useTheme();
@@ -227,27 +96,139 @@ export default function ResourcesScreen() {
   // Loading states for async operations
   const [isSharing, setIsSharing] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [digitalBadges, setDigitalBadges] = useState<DigitalBadge[]>([]);
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      setLoading(true);
+      try {
+        // In a real app, you would fetch resources from the database
+        // For now, we'll use mock data
+        const resourcesData = await DataService.getResources({ limit: 10 });
+        
+        // Map the resources to the format expected by the UI
+        const mappedResources = resourcesData.map(resource => ({
+          id: resource.id,
+          title: resource.title,
+          description: resource.description || '',
+          type: mapResourceType(resource.type),
+          category: resource.category || 'General',
+          fileType: resource.file_type || 'Unknown',
+          fileSize: formatFileSize(resource.file_size),
+          downloadUrl: resource.file_url || resource.external_url || '#',
+          icon: getResourceIcon(resource.type),
+          color: getResourceColor(resource.type),
+          downloads: resource.download_count,
+          rating: resource.rating
+        }));
+        
+        setResources(mappedResources);
+        
+        // For digital badges, we'll use mock data for now
+        // In a real app, you would fetch these from the database
+        setDigitalBadges(mockDigitalBadges);
+      } catch (error) {
+        console.error('Error fetching resources:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchResources();
+  }, []);
 
   const categories = [
-    { id: 'all', name: 'All', icon: <Grid3x3 size={18} color={colors.primary[500]} /> },
-    { id: 'tools', name: 'Tools', icon: <Code size={18} color={colors.primary[500]} /> },
-    { id: 'guides', name: 'Guides', icon: <BookOpen size={18} color={colors.primary[500]} /> },
-    { id: 'templates', name: 'Templates', icon: <FileText size={18} color={colors.primary[500]} /> },
-    { id: 'badges', name: 'Badges', icon: <Award size={18} color={colors.primary[500]} /> },
+    { id: 'all', name: 'All Resources' },
+    { id: 'tools', name: 'Tools' },
+    { id: 'guides', name: 'Guides' },
+    { id: 'templates', name: 'Templates' },
+    { id: 'badges', name: 'Badges' },
   ];
 
-  const filteredResources = resources.filter(resource => {
-    const matchesSearch = searchQuery === '' || 
-      resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = activeCategory === 'all' || 
-      (activeCategory === 'tools' && resource.type === 'tool') ||
-      (activeCategory === 'guides' && resource.type === 'guide') ||
-      (activeCategory === 'templates' && resource.type === 'template');
-    
-    return matchesSearch && matchesCategory;
-  });
+  const featuredResources = [
+    {
+      id: 'featured1',
+      title: 'Premium Design Assets',
+      subtitle: 'Exclusive collection of UI components',
+      image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+      gradient: ['#8B5CF6', '#EC4899'],
+      icon: <Sparkles size={32} color="white" />
+    },
+    {
+      id: 'featured2',
+      title: 'Developer Tools Suite',
+      subtitle: 'Essential tools for modern development',
+      image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+      gradient: ['#06B6D4', '#3B82F6'],
+      icon: <Zap size={32} color="white" />
+    }
+  ];
+
+  // Mock digital badges data
+  const mockDigitalBadges: DigitalBadge[] = [
+    {
+      id: 'badge1',
+      name: 'React Native Expert',
+      description: 'Demonstrated advanced proficiency in React Native development, including navigation, state management, and performance optimization.',
+      issuer: 'Meta Developer Certification',
+      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
+      badgeImage: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=400',
+      dateEarned: '2024-12-15',
+      verificationUrl: 'https://verify.meta.com/badge/react-native-expert',
+      isVerified: true,
+      category: 'Development',
+      skillLevel: 'expert',
+      credentialType: 'certification',
+      shareCount: 45,
+      viewCount: 234,
+      tags: ['React Native', 'Mobile Development', 'JavaScript', 'Cross-platform']
+    },
+    {
+      id: 'badge2',
+      name: 'UI/UX Design Professional',
+      description: 'Completed comprehensive training in user interface and user experience design principles, including user research and prototyping.',
+      issuer: 'Google Design Certificate',
+      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
+      badgeImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=400',
+      dateEarned: '2024-11-20',
+      verificationUrl: 'https://verify.google.com/badge/ux-design-pro',
+      isVerified: true,
+      category: 'Design',
+      skillLevel: 'advanced',
+      credentialType: 'certification',
+      shareCount: 32,
+      viewCount: 187,
+      tags: ['UI Design', 'UX Research', 'Prototyping', 'Figma']
+    },
+    {
+      id: 'badge3',
+      name: 'JavaScript Fundamentals',
+      description: 'Successfully completed foundational JavaScript programming course covering ES6+, DOM manipulation, and asynchronous programming.',
+      issuer: 'freeCodeCamp',
+      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
+      badgeImage: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=400',
+      dateEarned: '2024-10-05',
+      verificationUrl: 'https://verify.freecodecamp.org/badge/js-fundamentals',
+      isVerified: true,
+      category: 'Development',
+      skillLevel: 'intermediate',
+      credentialType: 'course_completion',
+      shareCount: 28,
+      viewCount: 156,
+      tags: ['JavaScript', 'Programming', 'Web Development', 'ES6']
+    }
+  ];
+
+  const filteredResources = activeCategory === 'all' 
+    ? resources 
+    : resources.filter(resource => {
+        if (activeCategory === 'tools') return resource.type === 'tool';
+        if (activeCategory === 'guides') return resource.type === 'guide';
+        if (activeCategory === 'templates') return resource.type === 'template';
+        return false;
+      });
 
   const filteredBadges = digitalBadges.filter(badge => {
     return searchQuery === '' || 
@@ -335,6 +316,51 @@ export default function ResourcesScreen() {
     }
   };
 
+  const formatFileSize = (bytes: number | null | undefined): string => {
+    if (bytes == null) return 'Unknown';
+    
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  };
+
+  const mapResourceType = (type: string): 'certificate' | 'guide' | 'template' | 'tool' => {
+    switch (type) {
+      case 'document': return 'guide';
+      case 'video': return 'guide';
+      case 'audio': return 'guide';
+      case 'image': return 'guide';
+      case 'link': return 'guide';
+      case 'tool': return 'tool';
+      default: return 'guide';
+    }
+  };
+
+  const getResourceIcon = (type: string): React.ReactNode => {
+    switch (type) {
+      case 'document': return <FileText size={24} color="white" />;
+      case 'video': return <BookOpen size={24} color="white" />;
+      case 'audio': return <BookOpen size={24} color="white" />;
+      case 'image': return <Palette size={24} color="white" />;
+      case 'link': return <ExternalLink size={24} color="white" />;
+      case 'tool': return <Code size={24} color="white" />;
+      default: return <FileText size={24} color="white" />;
+    }
+  };
+
+  const getResourceColor = (type: string): string => {
+    switch (type) {
+      case 'document': return '#F59E0B';
+      case 'video': return '#EF4444';
+      case 'audio': return '#8B5CF6';
+      case 'image': return '#EC4899';
+      case 'link': return '#3B82F6';
+      case 'tool': return '#06B6D4';
+      default: return '#64748B';
+    }
+  };
+
   const renderFeaturedCard = (item: typeof featuredResources[0], index: number) => (
     <Animated.View
       key={item.id}
@@ -344,7 +370,7 @@ export default function ResourcesScreen() {
       <TouchableOpacity style={styles.featuredCardContent} activeOpacity={0.9}>
         <Image source={{ uri: item.image }} style={styles.featuredCardImage} />
         <View style={[styles.featuredCardOverlay, { 
-          background: `linear-gradient(135deg, ${item.gradient[0]}CC, ${item.gradient[1]}CC)` 
+          backgroundColor: `rgba(0, 0, 0, 0.5)` 
         }]}>
           <View style={styles.featuredCardHeader}>
             <View style={styles.featuredCardIcon}>
@@ -560,7 +586,6 @@ export default function ResourcesScreen() {
                   ]}
                   onPress={() => setActiveCategory(category.id)}
                 >
-                  {category.icon}
                   <Text
                     style={[
                       styles.categoryChipText,
@@ -592,16 +617,40 @@ export default function ResourcesScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.contentGrid}>
-              {activeCategory === 'badges' ? (
-                filteredBadges.map((badge, index) => renderBadgeCard(badge, index))
-              ) : (
-                filteredResources.map((resource, index) => renderResourceCard(resource, index))
-              )}
-            </View>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                  Loading resources...
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.contentGrid}>
+                {activeCategory === 'badges' ? (
+                  filteredBadges.length > 0 ? (
+                    filteredBadges.map((badge, index) => renderBadgeCard(badge, index))
+                  ) : (
+                    <View style={styles.emptyStateContainer}>
+                      <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                        No badges found
+                      </Text>
+                    </View>
+                  )
+                ) : (
+                  filteredResources.length > 0 ? (
+                    filteredResources.map((resource, index) => renderResourceCard(resource, index))
+                  ) : (
+                    <View style={styles.emptyStateContainer}>
+                      <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                        No resources found
+                      </Text>
+                    </View>
+                  )
+                )}
+              </View>
+            )}
           </Animated.View>
 
-          {/* Bottom Spacing */}
+          {/* Bottom spacing */}
           <View style={styles.bottomSpacing} />
         </ScrollView>
 
@@ -754,7 +803,6 @@ const styles = StyleSheet.create({
   },
   featuredCardOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     padding: 20,
     justifyContent: 'space-between',
   },
@@ -829,6 +877,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+  },
+  emptyStateContainer: {
+    padding: 20,
+    alignItems: 'center',
+    width: '100%',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
   resourceCard: {
     width: '48%',
