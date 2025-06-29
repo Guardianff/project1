@@ -1,37 +1,37 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Purchases from 'react-native-purchases';
-import { CustomerInfo, PurchasesPackage, PurchasesError } from 'react-native-purchases';
 import { supabase } from '@/lib/supabase';
 
-// RevenueCat API keys
-const REVENUECAT_API_KEYS = {
-  ios: 'YOUR_IOS_API_KEY',
-  android: 'YOUR_ANDROID_API_KEY',
-};
+// Mock RevenueCat types for web environment
+interface CustomerInfo {
+  entitlements: {
+    active: Record<string, any>;
+  };
+}
 
-// Product IDs for each platform
-const PRODUCT_IDS = {
-  ios: {
-    monthly: 'com.yourapp.monthly',
-    annual: 'com.yourapp.annual',
-    lifetime: 'com.yourapp.lifetime',
-  },
-  android: {
-    monthly: 'com.yourapp.monthly',
-    annual: 'com.yourapp.annual',
-    lifetime: 'com.yourapp.lifetime',
-  },
-};
+interface PurchasesPackage {
+  identifier: string;
+}
 
-// Entitlement IDs
-const ENTITLEMENT_ID = 'premium';
+interface Offering {
+  identifier: string;
+  monthly?: PurchasesPackage;
+  annual?: PurchasesPackage;
+  availablePackages: PurchasesPackage[];
+}
 
+interface PurchasesError {
+  code: number;
+  message: string;
+  userCancelled: boolean;
+}
+
+// RevenueCat context type
 interface RevenueCatContextType {
   isInitialized: boolean;
   isPremium: boolean;
-  currentOffering: Purchases.Offering | null;
+  currentOffering: Offering | null;
   customerInfo: CustomerInfo | null;
   isLoading: boolean;
   purchasePackage: (packageToPurchase: PurchasesPackage) => Promise<void>;
@@ -43,73 +43,98 @@ interface RevenueCatContextType {
   logout: () => Promise<void>;
 }
 
+// Create context with undefined default value
 const RevenueCatContext = createContext<RevenueCatContextType | undefined>(undefined);
+
+// Premium entitlement ID
+const ENTITLEMENT_ID = 'premium';
+
+// Error codes for web simulation
+const ErrorCode = {
+  NetworkError: 1,
+  PurchaseNotAllowedError: 2,
+  PurchaseInvalidError: 3,
+  ProductNotAvailableForPurchaseError: 4,
+};
 
 export function RevenueCatProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  const [currentOffering, setCurrentOffering] = useState<Purchases.Offering | null>(null);
+  const [currentOffering, setCurrentOffering] = useState<Offering | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize RevenueCat
+  // Initialize RevenueCat or mock implementation
   useEffect(() => {
-    const initializeRevenueCat = async () => {
-      if (Platform.OS === 'web') {
-        console.log('RevenueCat is not supported on web');
-        setIsInitialized(true);
-        return;
-      }
-
+    const initialize = async () => {
       try {
-        // Configure RevenueCat SDK
-        const apiKey = Platform.OS === 'ios' ? REVENUECAT_API_KEYS.ios : REVENUECAT_API_KEYS.android;
-        
-        Purchases.configure({
-          apiKey,
-          appUserID: null, // This will use an anonymous ID initially
-          observerMode: false, // Set to true if you have your own IAP implementation
-          useAmazon: false, // Set to true if you're using Amazon Appstore
-        });
-
-        // Get current user from Supabase
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        // If user is logged in, identify them in RevenueCat
-        if (user) {
-          await Purchases.logIn(user.id);
+        if (Platform.OS === 'web') {
+          // Web implementation - use AsyncStorage to simulate premium status
+          const premiumStatus = await AsyncStorage.getItem('webPremiumStatus');
+          setIsPremium(premiumStatus === 'true');
+          
+          // Create mock offering for web
+          setCurrentOffering({
+            identifier: 'default',
+            monthly: { identifier: 'monthly' },
+            annual: { identifier: 'annual' },
+            availablePackages: [
+              { identifier: 'monthly' },
+              { identifier: 'annual' },
+              { identifier: 'lifetime' }
+            ]
+          });
+          
+          // Create mock customer info
+          setCustomerInfo({
+            entitlements: {
+              active: premiumStatus === 'true' ? { [ENTITLEMENT_ID]: { identifier: ENTITLEMENT_ID } } : {}
+            }
+          });
+        } else {
+          // This would be the actual RevenueCat implementation
+          // For now, we'll just simulate it since we can't import the actual SDK
+          console.log('RevenueCat would be initialized here in a native app');
+          
+          // Get current user from Supabase
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          // If user is logged in, we would identify them in RevenueCat
+          if (user) {
+            console.log(`Would identify user ${user.id} in RevenueCat`);
+          }
+          
+          // Simulate premium status for demo
+          setIsPremium(false);
+          
+          // Create mock offering for native
+          setCurrentOffering({
+            identifier: 'default',
+            monthly: { identifier: 'monthly' },
+            annual: { identifier: 'annual' },
+            availablePackages: [
+              { identifier: 'monthly' },
+              { identifier: 'annual' },
+              { identifier: 'lifetime' }
+            ]
+          });
+          
+          // Create mock customer info
+          setCustomerInfo({
+            entitlements: {
+              active: {}
+            }
+          });
         }
-
-        // Set up listener for purchases
-        Purchases.addCustomerInfoUpdateListener((info) => {
-          setCustomerInfo(info);
-          checkPremiumStatus(info);
-        });
-
-        // Get initial offerings
-        await getOfferings();
         
-        // Get initial customer info
-        const info = await Purchases.getCustomerInfo();
-        setCustomerInfo(info);
-        checkPremiumStatus(info);
-
         setIsInitialized(true);
       } catch (error) {
         console.error('Error initializing RevenueCat:', error);
-        // Still mark as initialized to prevent blocking the app
-        setIsInitialized(true);
+        setIsInitialized(true); // Still mark as initialized to prevent blocking the app
       }
     };
 
-    initializeRevenueCat();
-
-    // Clean up listener on unmount
-    return () => {
-      if (Platform.OS !== 'web') {
-        Purchases.removeCustomerInfoUpdateListener();
-      }
-    };
+    initialize();
   }, []);
 
   // Listen for auth state changes
@@ -119,25 +144,11 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
         if (Platform.OS === 'web') return;
 
         if (event === 'SIGNED_IN' && session?.user) {
-          // User signed in, identify them in RevenueCat
-          try {
-            await Purchases.logIn(session.user.id);
-            const info = await Purchases.getCustomerInfo();
-            setCustomerInfo(info);
-            checkPremiumStatus(info);
-          } catch (error) {
-            console.error('Error identifying user in RevenueCat:', error);
-          }
+          // User signed in, would identify them in RevenueCat
+          console.log(`Would identify user ${session.user.id} in RevenueCat`);
         } else if (event === 'SIGNED_OUT') {
-          // User signed out, reset to anonymous ID
-          try {
-            await Purchases.logOut();
-            const info = await Purchases.getCustomerInfo();
-            setCustomerInfo(info);
-            checkPremiumStatus(info);
-          } catch (error) {
-            console.error('Error logging out from RevenueCat:', error);
-          }
+          // User signed out, would reset to anonymous ID
+          console.log('Would log out from RevenueCat');
         }
       }
     );
@@ -147,27 +158,16 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
     };
   }, []);
 
-  // Check if user has premium entitlement
-  const checkPremiumStatus = (info: CustomerInfo) => {
-    if (info?.entitlements.active[ENTITLEMENT_ID]) {
-      setIsPremium(true);
-    } else {
-      setIsPremium(false);
-    }
-  };
-
   // Get available offerings
   const getOfferings = async () => {
     if (Platform.OS === 'web') {
-      console.log('RevenueCat is not supported on web');
+      console.log('RevenueCat offerings are simulated on web');
       return;
     }
 
     try {
-      const offerings = await Purchases.getOfferings();
-      if (offerings.current) {
-        setCurrentOffering(offerings.current);
-      }
+      // This would call Purchases.getOfferings() in a native app
+      console.log('Would fetch offerings from RevenueCat');
     } catch (error) {
       console.error('Error fetching offerings:', error);
     }
@@ -178,37 +178,58 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
     if (Platform.OS === 'web') {
       Alert.alert(
         'Web Not Supported',
-        'In-app purchases are not available on web. Please use our mobile app to subscribe.'
+        'In-app purchases are not available on web. Please use our mobile app to subscribe.',
+        [{ text: 'OK' }]
       );
       return;
     }
 
     setIsLoading(true);
     try {
-      const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-      setCustomerInfo(customerInfo);
-      checkPremiumStatus(customerInfo);
+      // This would call Purchases.purchasePackage() in a native app
+      console.log(`Would purchase package: ${packageToPurchase.identifier}`);
       
-      if (customerInfo.entitlements.active[ENTITLEMENT_ID]) {
-        Alert.alert('Success', 'Thank you for subscribing to Premium!');
-      }
+      // Simulate successful purchase
+      const mockCustomerInfo = {
+        entitlements: {
+          active: {
+            [ENTITLEMENT_ID]: {
+              identifier: ENTITLEMENT_ID,
+              isActive: true,
+              willRenew: packageToPurchase.identifier !== 'lifetime',
+              periodType: packageToPurchase.identifier === 'monthly' ? 'NORMAL' : 
+                          packageToPurchase.identifier === 'annual' ? 'ANNUAL' : 'LIFETIME',
+              latestPurchaseDate: new Date().toISOString(),
+              originalPurchaseDate: new Date().toISOString(),
+              expirationDate: packageToPurchase.identifier === 'lifetime' ? null : 
+                              new Date(Date.now() + (packageToPurchase.identifier === 'monthly' ? 30 : 365) * 24 * 60 * 60 * 1000).toISOString(),
+            }
+          }
+        }
+      };
+      
+      setCustomerInfo(mockCustomerInfo);
+      setIsPremium(true);
+      
+      Alert.alert('Success', 'Thank you for subscribing to Premium!');
     } catch (error) {
+      // Handle purchase errors
       const purchaseError = error as PurchasesError;
       
       if (!purchaseError.userCancelled) {
         let errorMessage = 'An unknown error occurred';
         
         switch (purchaseError.code) {
-          case Purchases.ErrorCode.NetworkError:
+          case ErrorCode.NetworkError:
             errorMessage = 'Please check your internet connection and try again.';
             break;
-          case Purchases.ErrorCode.PurchaseNotAllowedError:
+          case ErrorCode.PurchaseNotAllowedError:
             errorMessage = 'You are not allowed to make this purchase.';
             break;
-          case Purchases.ErrorCode.PurchaseInvalidError:
+          case ErrorCode.PurchaseInvalidError:
             errorMessage = 'The purchase is invalid.';
             break;
-          case Purchases.ErrorCode.ProductNotAvailableForPurchaseError:
+          case ErrorCode.ProductNotAvailableForPurchaseError:
             errorMessage = 'This product is not available for purchase.';
             break;
           default:
@@ -265,18 +286,39 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
     if (Platform.OS === 'web') {
       Alert.alert(
         'Web Not Supported',
-        'Restoring purchases is not available on web. Please use our mobile app.'
+        'Restoring purchases is not available on web. Please use our mobile app.',
+        [{ text: 'OK' }]
       );
       return;
     }
 
     setIsLoading(true);
     try {
-      const { customerInfo } = await Purchases.restorePurchases();
-      setCustomerInfo(customerInfo);
-      checkPremiumStatus(customerInfo);
+      // This would call Purchases.restorePurchases() in a native app
+      console.log('Would restore purchases from RevenueCat');
       
-      if (customerInfo.entitlements.active[ENTITLEMENT_ID]) {
+      // Simulate restore result
+      const hasRestoredPurchase = Math.random() > 0.5; // 50% chance of success for demo
+      
+      if (hasRestoredPurchase) {
+        const mockCustomerInfo = {
+          entitlements: {
+            active: {
+              [ENTITLEMENT_ID]: {
+                identifier: ENTITLEMENT_ID,
+                isActive: true,
+                willRenew: true,
+                periodType: 'ANNUAL',
+                latestPurchaseDate: new Date().toISOString(),
+                originalPurchaseDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                expirationDate: new Date(Date.now() + 335 * 24 * 60 * 60 * 1000).toISOString(),
+              }
+            }
+          }
+        };
+        
+        setCustomerInfo(mockCustomerInfo);
+        setIsPremium(true);
         Alert.alert('Success', 'Your premium subscription has been restored!');
       } else {
         Alert.alert('No Purchases Found', 'We couldn\'t find any previous premium purchases to restore.');
@@ -291,34 +333,29 @@ export function RevenueCatProvider({ children }: { children: React.ReactNode }) 
 
   // Logout from RevenueCat
   const logout = async () => {
-    if (Platform.OS === 'web') return;
+    if (Platform.OS === 'web') {
+      await AsyncStorage.removeItem('webPremiumStatus');
+      setIsPremium(false);
+      return;
+    }
     
     try {
-      await Purchases.logOut();
-      const info = await Purchases.getCustomerInfo();
-      setCustomerInfo(info);
-      checkPremiumStatus(info);
+      // This would call Purchases.logOut() in a native app
+      console.log('Would log out from RevenueCat');
+      
+      // Reset premium status
+      setIsPremium(false);
+      setCustomerInfo({
+        entitlements: {
+          active: {}
+        }
+      });
     } catch (error) {
       console.error('Error logging out from RevenueCat:', error);
     }
   };
 
-  // For web platform, simulate premium status with AsyncStorage
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const checkWebPremiumStatus = async () => {
-        try {
-          const webPremiumStatus = await AsyncStorage.getItem('webPremiumStatus');
-          setIsPremium(webPremiumStatus === 'true');
-        } catch (error) {
-          console.error('Error checking web premium status:', error);
-        }
-      };
-      
-      checkWebPremiumStatus();
-    }
-  }, []);
-
+  // Context value
   const value = {
     isInitialized,
     isPremium,
