@@ -24,6 +24,7 @@ export default function RootLayout() {
             <Stack.Screen name="fitness" options={{ headerShown: false }} />
             <Stack.Screen name="passion-projects" options={{ headerShown: false }} />
             <Stack.Screen name="daily-plan" options={{ headerShown: false }} />
+            <Stack.Screen name="premium" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" options={{ presentation: 'modal' }} />
           </Stack>
           <StatusBar style="auto" />

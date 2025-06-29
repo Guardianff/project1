@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, User, Bell, Lock, CreditCard, CircleHelp as HelpCircle, FileText, LogOut, Moon, Github, Linkedin, Link, Shield, FolderSync as Sync } from 'lucide-react-native';
+import { Settings, Award, BookOpen, Clock, ChevronRight, ChartBar as BarChart, User, Bell, Lock, CreditCard, CircleHelp as HelpCircle, FileText, LogOut, Moon, Github, Linkedin, Link, Shield, FolderSync as Sync, Sparkles } from 'lucide-react-native';
 import { Colors, getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
@@ -116,6 +116,10 @@ export default function ProfileScreen() {
     router.push('/profile-integration');
   };
 
+  const handlePremiumPress = () => {
+    router.push('/premium');
+  };
+
   const formatLastSync = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -195,7 +199,7 @@ export default function ProfileScreen() {
                 <Text style={[styles.name, { color: colors.text }]}>Alex Johnson</Text>
                 <Text style={[styles.email, { color: colors.textSecondary }]}>alex.johnson@example.com</Text>
                 <View style={[styles.membershipBadge, { backgroundColor: colors.secondary[100] }]}>
-                  <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Premium Member</Text>
+                  <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Free Account</Text>
                 </View>
               </View>
               
@@ -206,6 +210,30 @@ export default function ProfileScreen() {
                 onPress={() => {}}
                 style={styles.editButton}
               />
+            </Animated.View>
+
+            {/* Premium Upgrade Banner */}
+            <Animated.View entering={FadeInUp.delay(150).duration(500)} style={styles.premiumBannerContainer}>
+              <TouchableOpacity 
+                style={[styles.premiumBanner, { backgroundColor: colors.primary[50] }]}
+                onPress={handlePremiumPress}
+                activeOpacity={0.9}
+              >
+                <View style={styles.premiumBannerContent}>
+                  <View style={[styles.premiumIcon, { backgroundColor: colors.primary[500] }]}>
+                    <Sparkles size={24} color="white" />
+                  </View>
+                  <View style={styles.premiumTextContainer}>
+                    <Text style={[styles.premiumTitle, { color: colors.primary[700] }]}>
+                      Upgrade to Premium
+                    </Text>
+                    <Text style={[styles.premiumDescription, { color: colors.primary[600] }]}>
+                      Unlock all courses, coaching sessions, and more
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={20} color={colors.primary[500]} />
+              </TouchableOpacity>
             </Animated.View>
 
             {/* Profile Integration Status */}
@@ -473,8 +501,8 @@ export default function ProfileScreen() {
               <SettingItem
                 icon={<CreditCard size={22} color={colors.primary[500]} />}
                 title="Subscription"
-                subtitle="Premium Plan - $9.99/month"
-                onPress={() => {}}
+                subtitle="Upgrade to Premium"
+                onPress={handlePremiumPress}
               />
             </Animated.View>
 
@@ -619,6 +647,41 @@ const styles = StyleSheet.create({
   },
   editButton: {
     marginLeft: 8,
+  },
+  premiumBannerContainer: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  premiumBanner: {
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  premiumBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  premiumIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  premiumTextContainer: {
+    flex: 1,
+  },
+  premiumTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  premiumDescription: {
+    fontSize: 12,
   },
   integrationSection: {
     marginHorizontal: 16,
