@@ -13,27 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  ArrowLeft, 
-  Check, 
-  X, 
-  Shield, 
-  CreditCard, 
-  Calendar, 
-  Infinity, 
-  Sparkles, 
-  Zap, 
-  Star, 
-  Award, 
-  Lock, 
-  Unlock, 
-  Download, 
-  MessageCircle, 
-  Video, 
-  FileText, 
-  Clock, 
-  Users
-} from 'lucide-react-native';
+import { ArrowLeft, Check, X, Shield, CreditCard, Calendar, Infinity, Sparkles, Zap, Star, Award, Lock, Clock as Unlock, Download, MessageCircle, Video, FileText, Clock, Users } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
