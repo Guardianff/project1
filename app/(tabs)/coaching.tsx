@@ -17,6 +17,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DataService } from '@/services/DataService';
+import { supabase } from '@/lib/supabase';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 export default function CoachingScreen() {
@@ -32,12 +33,27 @@ export default function CoachingScreen() {
     const fetchCoachingSessions = async () => {
       setLoading(true);
       try {
-        // In a real app, you would get the user ID from auth
-        const userId = 'current-user-id';
-        const sessions = await DataService.getUpcomingCoachingSessions(userId);
+        // Get the authenticated user
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          console.error('Auth error:', authError);
+          setUpcomingCoachingSessions([]);
+          return;
+        }
+
+        if (!user) {
+          // No authenticated user, set empty sessions
+          setUpcomingCoachingSessions([]);
+          return;
+        }
+
+        // Fetch coaching sessions for the authenticated user
+        const sessions = await DataService.getUpcomingCoachingSessions(user.id);
         setUpcomingCoachingSessions(sessions);
       } catch (error) {
         console.error('Error fetching coaching sessions:', error);
+        setUpcomingCoachingSessions([]);
       } finally {
         setLoading(false);
       }
