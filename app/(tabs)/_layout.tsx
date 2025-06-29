@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chrome as Home, BookOpen, Calendar, FolderOpen, User } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
-import { AIAssistantButton } from '@/components/ai/AIAssistantButton';
+import { AIFloatingButton } from '@/components/ai/AIFloatingButton';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
 
 interface TabIconProps {
@@ -169,8 +169,8 @@ export default function TabLayout() {
         />
       </Tabs>
       
-      {/* AI Assistant Button */}
-      <AIAssistantButton />
+      {/* AI Floating Button */}
+      <AIFloatingButton />
     </View>
   );
 }

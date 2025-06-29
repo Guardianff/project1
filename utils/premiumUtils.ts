@@ -37,7 +37,7 @@ export const PRODUCT_IDS = {
 // RevenueCat entitlement ID
 export const ENTITLEMENT_ID = 'premium';
 
-// For web platform, simulate premium purchase
+// For web platform, simulate premium status with AsyncStorage
 export const simulatePremiumPurchase = async (subscriptionType: string): Promise<boolean> => {
   if (Platform.OS !== 'web') return false;
   
