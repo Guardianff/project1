@@ -380,7 +380,6 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  SET search_path TO public; -- Set a fixed search path
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
