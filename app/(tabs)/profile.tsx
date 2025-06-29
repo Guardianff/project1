@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
-  Switch
+  Switch,
+  ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -18,6 +19,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { Button } from '@/components/ui/Button';
 import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
+import { supabase } from '@/lib/supabase';
 
 interface SettingItemProps {
   icon: React.ReactNode;
@@ -58,6 +60,14 @@ export default function ProfileScreen() {
   const [achievements, setAchievements] = useState([]);
   const [learningPaths, setLearningPaths] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    totalCourses: 0,
+    completedCourses: 0,
+    totalHours: 0,
+    achievements: 0,
+    streak: 0
+  });
+  const [recentActivity, setRecentActivity] = useState([]);
 
   // Mock integration status
   const [integrationStatus, setIntegrationStatus] = useState({
@@ -69,17 +79,29 @@ export default function ProfileScreen() {
     const fetchProfileData = async () => {
       setLoading(true);
       try {
-        // In a real app, you would get the user ID from auth
-        const userId = 'current-user-id';
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
         
-        // Fetch achievements and learning paths
-        const [achievementsData, learningPathsData] = await Promise.all([
+        if (!user) {
+          console.log('No user logged in');
+          setLoading(false);
+          return;
+        }
+        
+        const userId = user.id;
+        
+        // Fetch user stats, achievements, learning paths, and recent activity
+        const [stats, achievementsData, learningPathsData, activityData] = await Promise.all([
+          DataService.getUserStats(userId),
           DataService.getAchievements(userId),
-          DataService.getLearningPaths()
+          DataService.getLearningPaths(),
+          DataService.getUserRecentActivity(userId, 5)
         ]);
         
+        setUserStats(stats);
         setAchievements(achievementsData);
         setLearningPaths(learningPathsData);
+        setRecentActivity(activityData);
       } catch (error) {
         console.error('Error fetching profile data:', error);
       } finally {
@@ -104,6 +126,46 @@ export default function ProfileScreen() {
     return date.toLocaleDateString();
   };
 
+  const renderActivityItem = (activity: any) => {
+    const getActivityIcon = (type: string) => {
+      switch (type) {
+        case 'enrollment':
+          return <BookOpen size={16} color={colors.primary[500]} />;
+        case 'lesson_completed':
+          return <Clock size={16} color={colors.success[500]} />;
+        case 'achievement':
+          return <Award size={16} color={colors.warning[500]} />;
+        default:
+          return <Clock size={16} color={colors.neutral[500]} />;
+      }
+    };
+
+    const formatTimestamp = (timestamp: string) => {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+      
+      if (diffInHours < 1) return 'Just now';
+      if (diffInHours < 24) return `${diffInHours}h ago`;
+      if (diffInHours < 48) return 'Yesterday';
+      return date.toLocaleDateString();
+    };
+
+    return (
+      <View style={[styles.activityItem, { backgroundColor: colors.background }]}>
+        <View style={[styles.activityIcon, { backgroundColor: colors.neutral[100] }]}>
+          {getActivityIcon(activity.type)}
+        </View>
+        <View style={styles.activityContent}>
+          <Text style={[styles.activityTitle, { color: colors.text }]}>{activity.title}</Text>
+          <Text style={[styles.activityTime, { color: colors.textSecondary }]}>
+            {formatTimestamp(activity.timestamp)}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={[styles.container, { paddingTop: Platform.OS === 'ios' ? 0 : insets.top }]}>
@@ -112,343 +174,376 @@ export default function ProfileScreen() {
           <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
         </Animated.View>
         
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Profile Card */}
-          <Animated.View entering={FadeInUp.delay(100).duration(500)} style={[styles.profileCard, { backgroundColor: colors.background }]}>
-            <Image
-              source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
-              style={styles.avatar}
-            />
-            
-            <View style={styles.profileInfo}>
-              <Text style={[styles.name, { color: colors.text }]}>Alex Johnson</Text>
-              <Text style={[styles.email, { color: colors.textSecondary }]}>alex.johnson@example.com</Text>
-              <View style={[styles.membershipBadge, { backgroundColor: colors.secondary[100] }]}>
-                <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Premium Member</Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary[500]} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading profile data...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {/* Profile Card */}
+            <Animated.View entering={FadeInUp.delay(100).duration(500)} style={[styles.profileCard, { backgroundColor: colors.background }]}>
+              <Image
+                source={{ uri: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }}
+                style={styles.avatar}
+              />
+              
+              <View style={styles.profileInfo}>
+                <Text style={[styles.name, { color: colors.text }]}>Alex Johnson</Text>
+                <Text style={[styles.email, { color: colors.textSecondary }]}>alex.johnson@example.com</Text>
+                <View style={[styles.membershipBadge, { backgroundColor: colors.secondary[100] }]}>
+                  <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Premium Member</Text>
+                </View>
               </View>
-            </View>
-            
-            <Button
-              title="Edit Profile"
-              variant="outline"
-              size="small"
-              onPress={() => {}}
-              style={styles.editButton}
-            />
-          </Animated.View>
+              
+              <Button
+                title="Edit Profile"
+                variant="outline"
+                size="small"
+                onPress={() => {}}
+                style={styles.editButton}
+              />
+            </Animated.View>
 
-          {/* Profile Integration Status */}
-          <Animated.View entering={FadeInUp.delay(200).duration(500)} style={styles.integrationSection}>
-            <View style={styles.integrationHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile Integration</Text>
-              <TouchableOpacity onPress={handleProfileIntegration}>
-                <Text style={[styles.manageText, { color: colors.primary[500] }]}>Manage</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={[styles.integrationCard, { backgroundColor: colors.background }]}>
-              <View style={styles.integrationPlatforms}>
-                <View style={styles.platformStatus}>
-                  <View style={[styles.platformIcon, { backgroundColor: '#24292e' }]}>
-                    <Github size={20} color="white" />
-                  </View>
-                  <View style={styles.platformInfo}>
-                    <Text style={[styles.platformName, { color: colors.text }]}>GitHub</Text>
-                    <Text style={[styles.platformStatus, { color: integrationStatus.github.connected ? colors.success[500] : colors.error[500] }]}>
-                      {integrationStatus.github.connected ? 'Connected' : 'Not connected'}
-                    </Text>
-                    {integrationStatus.github.connected && (
-                      <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
-                        Last sync: {formatLastSync(integrationStatus.github.lastSync)}
+            {/* Profile Integration Status */}
+            <Animated.View entering={FadeInUp.delay(200).duration(500)} style={styles.integrationSection}>
+              <View style={styles.integrationHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile Integration</Text>
+                <TouchableOpacity onPress={handleProfileIntegration}>
+                  <Text style={[styles.manageText, { color: colors.primary[500] }]}>Manage</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={[styles.integrationCard, { backgroundColor: colors.background }]}>
+                <View style={styles.integrationPlatforms}>
+                  <View style={styles.platformStatus}>
+                    <View style={[styles.platformIcon, { backgroundColor: '#24292e' }]}>
+                      <Github size={20} color="white" />
+                    </View>
+                    <View style={styles.platformInfo}>
+                      <Text style={[styles.platformName, { color: colors.text }]}>GitHub</Text>
+                      <Text style={[styles.platformStatus, { color: integrationStatus.github.connected ? colors.success[500] : colors.error[500] }]}>
+                        {integrationStatus.github.connected ? 'Connected' : 'Not connected'}
                       </Text>
-                    )}
+                      {integrationStatus.github.connected && (
+                        <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
+                          Last sync: {formatLastSync(integrationStatus.github.lastSync)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.platformActions}>
+                      <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
+                        <Sync size={16} color={colors.primary[500]} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View style={styles.platformActions}>
-                    <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
-                      <Sync size={16} color={colors.primary[500]} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
 
-                <View style={styles.platformStatus}>
-                  <View style={[styles.platformIcon, { backgroundColor: '#0077b5' }]}>
-                    <Linkedin size={20} color="white" />
-                  </View>
-                  <View style={styles.platformInfo}>
-                    <Text style={[styles.platformName, { color: colors.text }]}>LinkedIn</Text>
-                    <Text style={[styles.platformStatus, { color: integrationStatus.linkedin.connected ? colors.success[500] : colors.error[500] }]}>
-                      {integrationStatus.linkedin.connected ? 'Connected' : 'Not connected'}
-                    </Text>
-                    {integrationStatus.linkedin.connected && (
-                      <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
-                        Last sync: {formatLastSync(integrationStatus.linkedin.lastSync)}
+                  <View style={styles.platformStatus}>
+                    <View style={[styles.platformIcon, { backgroundColor: '#0077b5' }]}>
+                      <Linkedin size={20} color="white" />
+                    </View>
+                    <View style={styles.platformInfo}>
+                      <Text style={[styles.platformName, { color: colors.text }]}>LinkedIn</Text>
+                      <Text style={[styles.platformStatus, { color: integrationStatus.linkedin.connected ? colors.success[500] : colors.error[500] }]}>
+                        {integrationStatus.linkedin.connected ? 'Connected' : 'Not connected'}
                       </Text>
-                    )}
-                  </View>
-                  <View style={styles.platformActions}>
-                    <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
-                      <Sync size={16} color={colors.primary[500]} />
-                    </TouchableOpacity>
+                      {integrationStatus.linkedin.connected && (
+                        <Text style={[styles.lastSyncText, { color: colors.neutral[500] }]}>
+                          Last sync: {formatLastSync(integrationStatus.linkedin.lastSync)}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.platformActions}>
+                      <TouchableOpacity style={[styles.syncButton, { backgroundColor: colors.primary[50] }]}>
+                        <Sync size={16} color={colors.primary[500]} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
 
-              <TouchableOpacity 
-                style={[styles.integrationCTA, { backgroundColor: colors.primary[50] }]}
-                onPress={handleProfileIntegration}
-              >
-                <View style={styles.integrationCTAContent}>
-                  <View style={[styles.integrationCTAIcon, { backgroundColor: colors.primary[500] }]}>
-                    <Link size={20} color="white" />
-                  </View>
-                  <View style={styles.integrationCTAText}>
-                    <Text style={[styles.integrationCTATitle, { color: colors.primary[700] }]}>
-                      Enhance Your Profile
-                    </Text>
-                    <Text style={[styles.integrationCTADescription, { color: colors.primary[600] }]}>
-                      Connect more platforms to showcase your complete professional journey
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={20} color={colors.primary[500]} />
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-          
-          {/* Stats Section */}
-          <Animated.View entering={FadeInUp.delay(300).duration(500)} style={[styles.statsContainer, { backgroundColor: colors.background }]}>
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.text }]}>7</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Courses</Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.neutral[200] }]} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.text }]}>42</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Hours</Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.neutral[200] }]} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.text }]}>3</Text>
-              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Certificates</Text>
-            </View>
-          </Animated.View>
-          
-          {/* Learning Progress */}
-          <Animated.View entering={FadeInUp.delay(400).duration(500)} style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Learning Paths</Text>
-              <TouchableOpacity>
-                <Text style={[styles.viewAllText, { color: colors.primary[500] }]}>View All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                  Loading learning paths...
-                </Text>
-              </View>
-            ) : learningPaths.length === 0 ? (
-              <View style={styles.emptyStateContainer}>
-                <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-                  No learning paths found
-                </Text>
-              </View>
-            ) : (
-              learningPaths.slice(0, 2).map((path, index) => (
-                <Animated.View
-                  key={path.id}
-                  entering={FadeInRight.delay(500 + index * 100).duration(500)}
-                  style={[styles.learningPathCard, { backgroundColor: colors.background }]}
+                <TouchableOpacity 
+                  style={[styles.integrationCTA, { backgroundColor: colors.primary[50] }]}
+                  onPress={handleProfileIntegration}
                 >
-                  <View style={styles.pathInfo}>
-                    <Text style={[styles.pathTitle, { color: colors.text }]}>{path.title}</Text>
-                    <Text style={[styles.pathDescription, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {path.description}
-                    </Text>
-                    <View style={styles.pathMetaData}>
-                      <BookOpen size={14} color={colors.neutral[500]} />
-                      <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>{path.courses.length} courses</Text>
-                      <Clock size={14} color={colors.neutral[500]} style={{ marginLeft: 12 }} />
-                      <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>
-                        {path.courses.reduce((total, course) => total + course.duration, 0) / 60} hours
+                  <View style={styles.integrationCTAContent}>
+                    <View style={[styles.integrationCTAIcon, { backgroundColor: colors.primary[500] }]}>
+                      <Link size={20} color="white" />
+                    </View>
+                    <View style={styles.integrationCTAText}>
+                      <Text style={[styles.integrationCTATitle, { color: colors.primary[700] }]}>
+                        Enhance Your Profile
+                      </Text>
+                      <Text style={[styles.integrationCTADescription, { color: colors.primary[600] }]}>
+                        Connect more platforms to showcase your complete professional journey
                       </Text>
                     </View>
                   </View>
-                  
-                  <View style={styles.pathProgress}>
-                    <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
-                      <View style={[styles.progressFill, { backgroundColor: colors.primary[500], width: `${path.progress}%` }]} />
-                    </View>
-                    <Text style={[styles.progressText, { color: colors.textSecondary }]}>{path.progress}%</Text>
-                  </View>
-                </Animated.View>
-              ))
-            )}
-          </Animated.View>
-          
-          {/* Achievements */}
-          <Animated.View entering={FadeInUp.delay(600).duration(500)} style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Achievements</Text>
-              <TouchableOpacity>
-                <Text style={[styles.viewAllText, { color: colors.primary[500] }]}>View All</Text>
-              </TouchableOpacity>
-            </View>
+                  <ChevronRight size={20} color={colors.primary[500]} />
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
             
-            <View style={styles.achievementsContainer}>
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                    Loading achievements...
-                  </Text>
-                </View>
-              ) : achievements.length === 0 ? (
+            {/* Stats Section */}
+            <Animated.View entering={FadeInUp.delay(300).duration(500)} style={[styles.statsContainer, { backgroundColor: colors.background }]}>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.text }]}>{userStats.totalCourses}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Courses</Text>
+              </View>
+              <View style={[styles.statDivider, { backgroundColor: colors.neutral[200] }]} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.text }]}>{userStats.totalHours}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Hours</Text>
+              </View>
+              <View style={[styles.statDivider, { backgroundColor: colors.neutral[200] }]} />
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: colors.text }]}>{userStats.completedCourses}</Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Certificates</Text>
+              </View>
+            </Animated.View>
+            
+            {/* Recent Activity */}
+            <Animated.View entering={FadeInUp.delay(350).duration(500)} style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Activity</Text>
+              </View>
+              
+              {recentActivity.length === 0 ? (
                 <View style={styles.emptyStateContainer}>
                   <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
-                    No achievements found
+                    No recent activity found
                   </Text>
                 </View>
               ) : (
-                achievements.slice(0, 3).map((achievement, index) => (
+                <View style={styles.activityList}>
+                  {recentActivity.map((activity, index) => (
+                    <Animated.View
+                      key={activity.id}
+                      entering={FadeInRight.delay(400 + index * 100).duration(500)}
+                    >
+                      {renderActivityItem(activity)}
+                    </Animated.View>
+                  ))}
+                </View>
+              )}
+            </Animated.View>
+            
+            {/* Learning Progress */}
+            <Animated.View entering={FadeInUp.delay(400).duration(500)} style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Learning Paths</Text>
+                <TouchableOpacity>
+                  <Text style={[styles.viewAllText, { color: colors.primary[500] }]}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                    Loading learning paths...
+                  </Text>
+                </View>
+              ) : learningPaths.length === 0 ? (
+                <View style={styles.emptyStateContainer}>
+                  <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                    No learning paths found
+                  </Text>
+                </View>
+              ) : (
+                learningPaths.slice(0, 2).map((path, index) => (
                   <Animated.View
-                    key={achievement.id}
-                    entering={FadeInUp.delay(700 + index * 100).duration(500)}
-                    style={[styles.achievementCard, { backgroundColor: colors.background }]}
+                    key={path.id}
+                    entering={FadeInRight.delay(500 + index * 100).duration(500)}
+                    style={[styles.learningPathCard, { backgroundColor: colors.background }]}
                   >
-                    <View style={[
-                      styles.achievementIconContainer,
-                      { backgroundColor: achievement.completed ? colors.success[500] : colors.neutral[200] }
-                    ]}>
-                      <Award
-                        size={24}
-                        color={achievement.completed ? 'white' : colors.neutral[400]}
-                      />
+                    <View style={styles.pathInfo}>
+                      <Text style={[styles.pathTitle, { color: colors.text }]}>{path.title}</Text>
+                      <Text style={[styles.pathDescription, { color: colors.textSecondary }]} numberOfLines={2}>
+                        {path.description}
+                      </Text>
+                      <View style={styles.pathMetaData}>
+                        <BookOpen size={14} color={colors.neutral[500]} />
+                        <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>{path.courses.length} courses</Text>
+                        <Clock size={14} color={colors.neutral[500]} style={{ marginLeft: 12 }} />
+                        <Text style={[styles.pathMetaText, { color: colors.neutral[600] }]}>
+                          {path.courses.reduce((total, course) => total + course.duration, 0) / 60} hours
+                        </Text>
+                      </View>
                     </View>
-                    <Text style={[styles.achievementTitle, { color: colors.text }]}>{achievement.title}</Text>
-                    <View style={[styles.achievementProgressBar, { backgroundColor: colors.neutral[200] }]}>
-                      <View 
-                        style={[
-                          styles.achievementProgressFill, 
-                          { backgroundColor: colors.success[500], width: `${achievement.progress}%` }
-                        ]} 
-                      />
+                    
+                    <View style={styles.pathProgress}>
+                      <View style={[styles.progressBar, { backgroundColor: colors.neutral[200] }]}>
+                        <View style={[styles.progressFill, { backgroundColor: colors.primary[500], width: `${path.progress}%` }]} />
+                      </View>
+                      <Text style={[styles.progressText, { color: colors.textSecondary }]}>{path.progress}%</Text>
                     </View>
                   </Animated.View>
                 ))
               )}
+            </Animated.View>
+            
+            {/* Achievements */}
+            <Animated.View entering={FadeInUp.delay(600).duration(500)} style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Achievements</Text>
+                <TouchableOpacity>
+                  <Text style={[styles.viewAllText, { color: colors.primary[500] }]}>View All</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.achievementsContainer}>
+                {loading ? (
+                  <View style={styles.loadingContainer}>
+                    <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                      Loading achievements...
+                    </Text>
+                  </View>
+                ) : achievements.length === 0 ? (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
+                      No achievements found
+                    </Text>
+                  </View>
+                ) : (
+                  achievements.slice(0, 3).map((achievement, index) => (
+                    <Animated.View
+                      key={achievement.id}
+                      entering={FadeInUp.delay(700 + index * 100).duration(500)}
+                      style={[styles.achievementCard, { backgroundColor: colors.background }]}
+                    >
+                      <View style={[
+                        styles.achievementIconContainer,
+                        { backgroundColor: achievement.completed ? colors.success[500] : colors.neutral[200] }
+                      ]}>
+                        <Award
+                          size={24}
+                          color={achievement.completed ? 'white' : colors.neutral[400]}
+                        />
+                      </View>
+                      <Text style={[styles.achievementTitle, { color: colors.text }]}>{achievement.title}</Text>
+                      <View style={[styles.achievementProgressBar, { backgroundColor: colors.neutral[200] }]}>
+                        <View 
+                          style={[
+                            styles.achievementProgressFill, 
+                            { backgroundColor: colors.success[500], width: `${achievement.progress}%` }
+                          ]} 
+                        />
+                      </View>
+                    </Animated.View>
+                  ))
+                )}
+              </View>
+            </Animated.View>
+            
+            {/* Settings Section */}
+            <Animated.View entering={FadeInUp.delay(1100).duration(500)} style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
+
+              <SettingItem
+                icon={<User size={22} color={colors.primary[500]} />}
+                title="Profile Information"
+                subtitle="Edit your personal details"
+                onPress={() => {}}
+              />
+
+              <SettingItem
+                icon={<Bell size={22} color={colors.primary[500]} />}
+                title="Notifications"
+                subtitle={notifications ? "On" : "Off"}
+                onPress={() => {}}
+                rightElement={
+                  <Switch
+                    value={notifications}
+                    onValueChange={setNotifications}
+                    trackColor={{ false: colors.neutral[200], true: colors.primary[200] }}
+                    thumbColor={notifications ? colors.primary[500] : colors.neutral[400]}
+                  />
+                }
+              />
+
+              <SettingItem
+                icon={<Lock size={22} color={colors.primary[500]} />}
+                title="Password & Security"
+                subtitle="Update your password and security settings"
+                onPress={() => {}}
+              />
+
+              <SettingItem
+                icon={<CreditCard size={22} color={colors.primary[500]} />}
+                title="Subscription"
+                subtitle="Premium Plan - $9.99/month"
+                onPress={() => {}}
+              />
+            </Animated.View>
+
+            {/* Preferences Section */}
+            <Animated.View entering={FadeInUp.delay(1200).duration(500)} style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
+
+              <SettingItem
+                icon={<Moon size={22} color={colors.primary[500]} />}
+                title="Dark Mode"
+                subtitle={isDarkMode ? "On" : "Off"}
+                onPress={() => {}}
+                rightElement={
+                  <Switch
+                    value={isDarkMode}
+                    onValueChange={toggleTheme}
+                    trackColor={{ false: colors.neutral[200], true: colors.primary[200] }}
+                    thumbColor={isDarkMode ? colors.primary[500] : colors.neutral[400]}
+                  />
+                }
+              />
+            </Animated.View>
+
+            {/* Support Section */}
+            <Animated.View entering={FadeInUp.delay(1300).duration(500)} style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
+
+              <SettingItem
+                icon={<HelpCircle size={22} color={colors.primary[500]} />}
+                title="Help Center"
+                subtitle="Get help with your account"
+                onPress={() => {}}
+              />
+
+              <SettingItem
+                icon={<FileText size={22} color={colors.primary[500]} />}
+                title="Terms of Service"
+                onPress={() => {}}
+              />
+
+              <SettingItem
+                icon={<FileText size={22} color={colors.primary[500]} />}
+                title="Privacy Policy"
+                onPress={() => {}}
+              />
+            </Animated.View>
+
+            {/* Logout Button */}
+            <Animated.View entering={FadeInUp.delay(1400).duration(500)}>
+              <TouchableOpacity 
+                style={[styles.logoutButton, { backgroundColor: colors.error[50] }]} 
+                onPress={() => {}}
+              >
+                <LogOut size={22} color={colors.error[500]} />
+                <Text style={[styles.logoutText, { color: colors.error[600] }]}>Log Out</Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Version Info */}
+            <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
+              <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
+            </Animated.View>
+            
+            {/* "Built on Bolt" badge */}
+            <View style={styles.boltBadgeContainer}>
+              <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
             </View>
-          </Animated.View>
-          
-          {/* Settings Section */}
-          <Animated.View entering={FadeInUp.delay(1100).duration(500)} style={styles.sectionContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
-
-            <SettingItem
-              icon={<User size={22} color={colors.primary[500]} />}
-              title="Profile Information"
-              subtitle="Edit your personal details"
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon={<Bell size={22} color={colors.primary[500]} />}
-              title="Notifications"
-              subtitle={notifications ? "On" : "Off"}
-              onPress={() => {}}
-              rightElement={
-                <Switch
-                  value={notifications}
-                  onValueChange={setNotifications}
-                  trackColor={{ false: colors.neutral[200], true: colors.primary[200] }}
-                  thumbColor={notifications ? colors.primary[500] : colors.neutral[400]}
-                />
-              }
-            />
-
-            <SettingItem
-              icon={<Lock size={22} color={colors.primary[500]} />}
-              title="Password & Security"
-              subtitle="Update your password and security settings"
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon={<CreditCard size={22} color={colors.primary[500]} />}
-              title="Subscription"
-              subtitle="Premium Plan - $9.99/month"
-              onPress={() => {}}
-            />
-          </Animated.View>
-
-          {/* Preferences Section */}
-          <Animated.View entering={FadeInUp.delay(1200).duration(500)} style={styles.sectionContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
-
-            <SettingItem
-              icon={<Moon size={22} color={colors.primary[500]} />}
-              title="Dark Mode"
-              subtitle={isDarkMode ? "On" : "Off"}
-              onPress={() => {}}
-              rightElement={
-                <Switch
-                  value={isDarkMode}
-                  onValueChange={toggleTheme}
-                  trackColor={{ false: colors.neutral[200], true: colors.primary[200] }}
-                  thumbColor={isDarkMode ? colors.primary[500] : colors.neutral[400]}
-                />
-              }
-            />
-          </Animated.View>
-
-          {/* Support Section */}
-          <Animated.View entering={FadeInUp.delay(1300).duration(500)} style={styles.sectionContainer}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
-
-            <SettingItem
-              icon={<HelpCircle size={22} color={colors.primary[500]} />}
-              title="Help Center"
-              subtitle="Get help with your account"
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon={<FileText size={22} color={colors.primary[500]} />}
-              title="Terms of Service"
-              onPress={() => {}}
-            />
-
-            <SettingItem
-              icon={<FileText size={22} color={colors.primary[500]} />}
-              title="Privacy Policy"
-              onPress={() => {}}
-            />
-          </Animated.View>
-
-          {/* Logout Button */}
-          <Animated.View entering={FadeInUp.delay(1400).duration(500)}>
-            <TouchableOpacity 
-              style={[styles.logoutButton, { backgroundColor: colors.error[50] }]} 
-              onPress={() => {}}
-            >
-              <LogOut size={22} color={colors.error[500]} />
-              <Text style={[styles.logoutText, { color: colors.error[600] }]}>Log Out</Text>
-            </TouchableOpacity>
-          </Animated.View>
-
-          {/* Version Info */}
-          <Animated.View entering={FadeInUp.delay(1500).duration(500)} style={styles.versionContainer}>
-            <Text style={[styles.versionText, { color: colors.neutral[500] }]}>Version 1.0.0</Text>
-          </Animated.View>
-          
-          {/* "Built on Bolt" badge */}
-          <View style={styles.boltBadgeContainer}>
-            <Text style={[styles.boltBadgeText, { color: colors.textSecondary }]}>Built on Bolt</Text>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -471,6 +566,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 80,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 12,
   },
   profileCard: {
     flexDirection: 'row',
@@ -654,13 +758,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-  },
   emptyStateContainer: {
     padding: 20,
     alignItems: 'center',
@@ -668,6 +765,40 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     textAlign: 'center',
+  },
+  activityList: {
+    marginBottom: 8,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  activityIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  activityTime: {
+    fontSize: 12,
   },
   learningPathCard: {
     borderRadius: 12,

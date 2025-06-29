@@ -17,6 +17,7 @@ import { SmartRecommendations } from '@/components/recommendations/SmartRecommen
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
 import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
+import { supabase } from '@/lib/supabase';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -28,9 +29,9 @@ export default function HomeScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userActivity, setUserActivity] = useState({
     lastActive: new Date(),
-    sessionsToday: 3,
-    totalTime: 145, // minutes
-    streak: 7,
+    sessionsToday: 0,
+    totalTime: 0, // minutes
+    streak: 0,
   });
   
   const { isDarkMode } = useTheme();
@@ -39,6 +40,13 @@ export default function HomeScreen() {
 
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    totalCourses: 0,
+    completedCourses: 0,
+    totalHours: 0,
+    achievements: 0,
+    streak: 0
+  });
 
   // Update time every minute for dynamic greetings
   useEffect(() => {
@@ -51,8 +59,26 @@ export default function HomeScreen() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Fetch featured courses
         const coursesData = await DataService.getFeaturedCourses();
         setFeaturedCourses(coursesData);
+        
+        // If user is logged in, fetch user stats
+        if (user) {
+          const stats = await DataService.getUserStats(user.id);
+          setUserStats(stats);
+          
+          // Update user activity
+          setUserActivity({
+            lastActive: new Date(),
+            sessionsToday: Math.min(3, stats.totalCourses),
+            totalTime: stats.totalHours * 60, // convert hours to minutes
+            streak: stats.streak
+          });
+        }
       } catch (error) {
         console.error('Error fetching home data:', error);
       } finally {
@@ -145,6 +171,64 @@ export default function HomeScreen() {
     { id: 'focused', icon: <Brain size={28} color={colors.primary[500]} />, label: 'Focused', color: colors.primary[500] },
     { id: 'relaxed', icon: <Meh size={28} color={colors.warning[500]} />, label: 'Relaxed', color: colors.warning[500] },
     { id: 'tired', icon: <Frown size={28} color={colors.neutral[500]} />, label: 'Tired', color: colors.neutral[500] },
+  ];
+
+  // Quick actions for the QuickActionsGrid component
+  const quickActions = [
+    {
+      id: 'goal',
+      title: 'Set a Goal',
+      subtitle: 'Create your next milestone',
+      icon: <Target size={32} color="white" />,
+      gradient: ['#8B5CF6', '#EC4899'],
+      stats: 'New',
+      priority: 'high',
+    },
+    {
+      id: 'career',
+      title: 'Career Growth',
+      subtitle: 'Advance your professional skills',
+      icon: <BookOpen size={32} color="white" />,
+      gradient: ['#3B82F6', '#06B6D4'],
+      stats: '3 sessions',
+      priority: 'high',
+    },
+    {
+      id: 'fitness',
+      title: 'Fitness Plan',
+      subtitle: 'Stay healthy and strong',
+      icon: <Dumbbell size={32} color="white" />,
+      gradient: ['#10B981', '#22C55E'],
+      stats: '15 min',
+      priority: 'medium',
+    },
+    {
+      id: 'passion',
+      title: 'Passion Project',
+      subtitle: 'Explore your creative side',
+      icon: <Heart size={32} color="white" />,
+      gradient: ['#F59E0B', '#EF4444'],
+      stats: 'Inspire',
+      priority: 'medium',
+    },
+    {
+      id: 'skills',
+      title: 'Learn Skills',
+      subtitle: 'Master new abilities',
+      icon: <BookOpen size={32} color="white" />,
+      gradient: ['#6366F1', '#8B5CF6'],
+      stats: '150+ courses',
+      priority: 'high',
+    },
+    {
+      id: 'plan',
+      title: 'Daily Plan',
+      subtitle: 'Review today\'s schedule',
+      icon: <Calendar size={32} color="white" />,
+      gradient: ['#14B8A6', '#06B6D4'],
+      stats: 'Today',
+      priority: 'medium',
+    },
   ];
 
   const handleNotificationPress = () => {
@@ -275,13 +359,28 @@ export default function HomeScreen() {
 
           {/* Smart Quick Actions */}
           <Animated.View entering={FadeInUp.delay(800).duration(600)}>
-            <QuickActionsGrid onActionPress={(actionId) => {
-              if (actionId === 'continue-learning') {
-                router.push('/courses');
-              } else if (actionId === 'ai-tutor') {
-                router.push('/ai-assistant');
-              }
-            }} />
+            <QuickActionsGrid 
+              actions={quickActions}
+              onActionPress={(actionId) => {
+                if (actionId === 'continue-learning') {
+                  router.push('/courses');
+                } else if (actionId === 'ai-tutor') {
+                  router.push('/ai-assistant');
+                } else if (actionId === 'goal') {
+                  router.push('/goals');
+                } else if (actionId === 'career') {
+                  router.push('/coaching');
+                } else if (actionId === 'fitness') {
+                  router.push('/fitness');
+                } else if (actionId === 'passion') {
+                  router.push('/passion-projects');
+                } else if (actionId === 'skills') {
+                  router.push('/courses');
+                } else if (actionId === 'plan') {
+                  router.push('/daily-plan');
+                }
+              }} 
+            />
           </Animated.View>
 
           {/* Mood Check-in */}

@@ -10,7 +10,8 @@ import {
   Image,
   Share,
   Alert,
-  Dimensions
+  Dimensions,
+  ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -48,6 +49,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight, SlideInRight } from 'react-native-reanimated';
+import { supabase } from '@/lib/supabase';
 
 interface DigitalBadge {
   id: string;
@@ -99,13 +101,16 @@ export default function ResourcesScreen() {
   const [loading, setLoading] = useState(true);
   const [resources, setResources] = useState<Resource[]>([]);
   const [digitalBadges, setDigitalBadges] = useState<DigitalBadge[]>([]);
+  const [featuredResources, setFeaturedResources] = useState([]);
 
   useEffect(() => {
     const fetchResources = async () => {
       setLoading(true);
       try {
-        // In a real app, you would fetch resources from the database
-        // For now, we'll use mock data
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Fetch resources from database
         const resourcesData = await DataService.getResources({ limit: 10 });
         
         // Map the resources to the format expected by the UI
@@ -126,9 +131,36 @@ export default function ResourcesScreen() {
         
         setResources(mappedResources);
         
-        // For digital badges, we'll use mock data for now
-        // In a real app, you would fetch these from the database
-        setDigitalBadges(mockDigitalBadges);
+        // Fetch featured resources
+        const featuredResourcesData = await DataService.getResources({ 
+          isPremium: true, 
+          limit: 2 
+        });
+        
+        setFeaturedResources([
+          {
+            id: 'featured1',
+            title: featuredResourcesData[0]?.title || 'Premium Design Assets',
+            subtitle: featuredResourcesData[0]?.description || 'Exclusive collection of UI components',
+            image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+            gradient: ['#8B5CF6', '#EC4899'],
+            icon: <Sparkles size={32} color="white" />
+          },
+          {
+            id: 'featured2',
+            title: featuredResourcesData[1]?.title || 'Developer Tools Suite',
+            subtitle: featuredResourcesData[1]?.description || 'Essential tools for modern development',
+            image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+            gradient: ['#06B6D4', '#3B82F6'],
+            icon: <Zap size={32} color="white" />
+          }
+        ]);
+        
+        // Fetch digital badges if user is logged in
+        if (user) {
+          const badgesData = await DataService.getDigitalBadges(user.id);
+          setDigitalBadges(badgesData);
+        }
       } catch (error) {
         console.error('Error fetching resources:', error);
       } finally {
@@ -145,80 +177,6 @@ export default function ResourcesScreen() {
     { id: 'guides', name: 'Guides' },
     { id: 'templates', name: 'Templates' },
     { id: 'badges', name: 'Badges' },
-  ];
-
-  const featuredResources = [
-    {
-      id: 'featured1',
-      title: 'Premium Design Assets',
-      subtitle: 'Exclusive collection of UI components',
-      image: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
-      gradient: ['#8B5CF6', '#EC4899'],
-      icon: <Sparkles size={32} color="white" />
-    },
-    {
-      id: 'featured2',
-      title: 'Developer Tools Suite',
-      subtitle: 'Essential tools for modern development',
-      image: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
-      gradient: ['#06B6D4', '#3B82F6'],
-      icon: <Zap size={32} color="white" />
-    }
-  ];
-
-  // Mock digital badges data
-  const mockDigitalBadges: DigitalBadge[] = [
-    {
-      id: 'badge1',
-      name: 'React Native Expert',
-      description: 'Demonstrated advanced proficiency in React Native development, including navigation, state management, and performance optimization.',
-      issuer: 'Meta Developer Certification',
-      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-      badgeImage: 'https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg?auto=compress&cs=tinysrgb&w=400',
-      dateEarned: '2024-12-15',
-      verificationUrl: 'https://verify.meta.com/badge/react-native-expert',
-      isVerified: true,
-      category: 'Development',
-      skillLevel: 'expert',
-      credentialType: 'certification',
-      shareCount: 45,
-      viewCount: 234,
-      tags: ['React Native', 'Mobile Development', 'JavaScript', 'Cross-platform']
-    },
-    {
-      id: 'badge2',
-      name: 'UI/UX Design Professional',
-      description: 'Completed comprehensive training in user interface and user experience design principles, including user research and prototyping.',
-      issuer: 'Google Design Certificate',
-      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-      badgeImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=400',
-      dateEarned: '2024-11-20',
-      verificationUrl: 'https://verify.google.com/badge/ux-design-pro',
-      isVerified: true,
-      category: 'Design',
-      skillLevel: 'advanced',
-      credentialType: 'certification',
-      shareCount: 32,
-      viewCount: 187,
-      tags: ['UI Design', 'UX Research', 'Prototyping', 'Figma']
-    },
-    {
-      id: 'badge3',
-      name: 'JavaScript Fundamentals',
-      description: 'Successfully completed foundational JavaScript programming course covering ES6+, DOM manipulation, and asynchronous programming.',
-      issuer: 'freeCodeCamp',
-      issuerLogo: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=400',
-      badgeImage: 'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=400',
-      dateEarned: '2024-10-05',
-      verificationUrl: 'https://verify.freecodecamp.org/badge/js-fundamentals',
-      isVerified: true,
-      category: 'Development',
-      skillLevel: 'intermediate',
-      credentialType: 'course_completion',
-      shareCount: 28,
-      viewCount: 156,
-      tags: ['JavaScript', 'Programming', 'Web Development', 'ES6']
-    }
   ];
 
   const filteredResources = activeCategory === 'all' 
@@ -482,6 +440,7 @@ export default function ResourcesScreen() {
           <Text style={[styles.badgeTitle, { color: colors.text }]} numberOfLines={2}>
             {badge.name}
           </Text>
+          
           <Text style={[styles.badgeIssuer, { color: colors.textSecondary }]}>
             {badge.issuer}
           </Text>
@@ -553,77 +512,78 @@ export default function ResourcesScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Featured Resources */}
-          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Collections</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.featuredList}
-            >
-              {featuredResources.map((item, index) => renderFeaturedCard(item, index))}
-            </ScrollView>
-          </Animated.View>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary[500]} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              Loading resources...
+            </Text>
+          </View>
+        ) : (
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            {/* Featured Resources */}
+            <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Featured Collections</Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.featuredList}
+              >
+                {featuredResources.map((item, index) => renderFeaturedCard(item, index))}
+              </ScrollView>
+            </Animated.View>
 
-          {/* Category Navigation */}
-          <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.section}>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryList}
-            >
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[
-                    styles.categoryChip,
-                    { backgroundColor: colors.neutral[100] },
-                    activeCategory === category.id && { 
-                      backgroundColor: colors.primary[50], 
-                      borderColor: colors.primary[200] 
-                    }
-                  ]}
-                  onPress={() => setActiveCategory(category.id)}
-                >
-                  <Text
+            {/* Category Navigation */}
+            <Animated.View entering={FadeInUp.delay(300).duration(400)} style={styles.section}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryList}
+              >
+                {categories.map((category) => (
+                  <TouchableOpacity
+                    key={category.id}
                     style={[
-                      styles.categoryChipText,
-                      { color: colors.neutral[600] },
+                      styles.categoryChip,
+                      { backgroundColor: colors.neutral[100] },
                       activeCategory === category.id && { 
-                        color: colors.primary[600], 
-                        fontWeight: '600' 
+                        backgroundColor: colors.primary[50], 
+                        borderColor: colors.primary[200] 
                       }
                     ]}
+                    onPress={() => setActiveCategory(category.id)}
                   >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </Animated.View>
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        { color: colors.neutral[600] },
+                        activeCategory === category.id && { 
+                          color: colors.primary[600], 
+                          fontWeight: '600' 
+                        }
+                      ]}
+                    >
+                      {category.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </Animated.View>
 
-          {/* Content Grid */}
-          <Animated.View entering={FadeInUp.delay(400).duration(400)} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {activeCategory === 'badges' ? 'Digital Badges' : 'Learning Resources'}
-              </Text>
-              <TouchableOpacity style={styles.viewModeButton}>
-                {viewMode === 'grid' ? 
-                  <List size={20} color={colors.neutral[500]} /> : 
-                  <Grid3x3 size={20} color={colors.neutral[500]} />
-                }
-              </TouchableOpacity>
-            </View>
-
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-                  Loading resources...
+            {/* Content Grid */}
+            <Animated.View entering={FadeInUp.delay(400).duration(400)} style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {activeCategory === 'badges' ? 'Digital Badges' : 'Learning Resources'}
                 </Text>
+                <TouchableOpacity style={styles.viewModeButton}>
+                  {viewMode === 'grid' ? 
+                    <List size={20} color={colors.neutral[500]} /> : 
+                    <Grid3x3 size={20} color={colors.neutral[500]} />
+                  }
+                </TouchableOpacity>
               </View>
-            ) : (
+
               <View style={styles.contentGrid}>
                 {activeCategory === 'badges' ? (
                   filteredBadges.length > 0 ? (
@@ -647,12 +607,12 @@ export default function ResourcesScreen() {
                   )
                 )}
               </View>
-            )}
-          </Animated.View>
+            </Animated.View>
 
-          {/* Bottom spacing */}
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+            {/* Bottom spacing */}
+            <View style={styles.bottomSpacing} />
+          </ScrollView>
+        )}
 
         {/* Badge Detail Modal */}
         {selectedBadge && (
@@ -764,6 +724,16 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 12,
   },
   section: {
     marginBottom: 32,
@@ -877,13 +847,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
   },
   emptyStateContainer: {
     padding: 20,
