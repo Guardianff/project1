@@ -52,7 +52,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Insert sample lessons for JavaScript course
 INSERT INTO lessons (id, course_id, title, description, content_type, content_url, duration_minutes, order_index, is_preview) VALUES
   ('550e8400-e29b-41d4-a716-446655440306', '550e8400-e29b-41d4-a716-446655440202', 'Understanding Closures', 'Deep dive into JavaScript closures and lexical scoping', 'video', 'https://example.com/video5', 22, 1, true),
-  ('550e8400-e29b-41d4-a716-446655440307', '550e8400-e29b-41d4-a716-446655440202', 'Prototypal Inheritance', 'Master JavaScript\'s prototype-based inheritance system', 'video', 'https://example.com/video6', 25, 2, false),
+  ('550e8400-e29b-41d4-a716-446655440307', '550e8400-e29b-41d4-a716-446655440202', 'Prototypal Inheritance', 'Master JavaScript''s prototype-based inheritance system', 'video', 'https://example.com/video6', 25, 2, false),
   ('550e8400-e29b-41d4-a716-446655440308', '550e8400-e29b-41d4-a716-446655440202', 'Async/Await Deep Dive', 'Advanced asynchronous programming patterns', 'video', 'https://example.com/video7', 30, 3, false)
 ON CONFLICT (id) DO NOTHING;
 
