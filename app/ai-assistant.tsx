@@ -12,21 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { 
-  X, 
-  Settings, 
-  MessageCircle, 
-  Sparkles, 
-  Lightbulb, 
-  Compass, 
-  Sliders, 
-  Trash2, 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Award, 
-  Clock 
-} from 'lucide-react-native';
+import { X, Settings, MessageCircle, Sparkles, Lightbulb, Compass, FileSliders as Sliders, Trash2, Brain, Target, TrendingUp, Award, Clock } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { useAIAgent } from '@/context/AIAgentContext';
