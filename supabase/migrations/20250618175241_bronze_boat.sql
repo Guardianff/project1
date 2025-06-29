@@ -252,13 +252,13 @@ ALTER TABLE learning_path_courses ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 CREATE POLICY "Users can view own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT USING (SELECT auth.uid() = id);
 
 CREATE POLICY "Users can update own profile" ON profiles
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (SELECT auth.uid() = id);
 
 CREATE POLICY "Users can insert own profile" ON profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
+  FOR INSERT WITH CHECK (SELECT auth.uid() = id);
 
 -- Categories policies (public read)
 CREATE POLICY "Categories are viewable by everyone" ON categories
@@ -280,40 +280,40 @@ CREATE POLICY "Course lessons are viewable by enrolled users" ON lessons
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM enrollments 
-      WHERE enrollments.user_id = auth.uid() 
+      WHERE enrollments.user_id = SELECT auth.uid() 
       AND enrollments.course_id = lessons.course_id
     )
   );
 
 -- Enrollments policies
 CREATE POLICY "Users can view own enrollments" ON enrollments
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can create own enrollments" ON enrollments
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can update own enrollments" ON enrollments
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (SELECT auth.uid() = user_id);
 
 -- Lesson progress policies
 CREATE POLICY "Users can view own lesson progress" ON lesson_progress
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can create own lesson progress" ON lesson_progress
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can update own lesson progress" ON lesson_progress
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (SELECT auth.uid() = user_id);
 
 -- Coaching sessions policies
 CREATE POLICY "Users can view own coaching sessions" ON coaching_sessions
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can create own coaching sessions" ON coaching_sessions
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can update own coaching sessions" ON coaching_sessions
-  FOR UPDATE USING (auth.uid() = user_id);
+  FOR UPDATE USING (SELECT auth.uid() = user_id);
 
 -- Resources policies (public read, premium check)
 CREATE POLICY "Free resources are viewable by everyone" ON resources
@@ -328,10 +328,10 @@ CREATE POLICY "Achievements are viewable by everyone" ON achievements
 
 -- User achievements policies
 CREATE POLICY "Users can view own achievements" ON user_achievements
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (SELECT auth.uid() = user_id);
 
 CREATE POLICY "Users can create own achievements" ON user_achievements
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (SELECT auth.uid() = user_id);
 
 -- Learning paths policies (public read)
 CREATE POLICY "Learning paths are viewable by everyone" ON learning_paths
