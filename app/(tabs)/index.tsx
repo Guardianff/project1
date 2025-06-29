@@ -6,6 +6,7 @@ import { Bell, Search, BookOpen, Play, TrendingUp, Target, Calendar, Zap, Award,
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { useAI } from '@/context/AIContext';
+import { useAIAgent } from '@/context/AIAgentContext';
 import { EnhancedSearchBar } from '@/components/ui/EnhancedSearchBar';
 import { EnhancedCard } from '@/components/ui/EnhancedCard';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -16,14 +17,25 @@ import { LearningStreakWidget } from '@/components/widgets/LearningStreakWidget'
 import { SmartRecommendations } from '@/components/recommendations/SmartRecommendations';
 import { QuickActionsGrid } from '@/components/actions/QuickActionsGrid';
 import { DataService } from '@/services/DataService';
-import Animated, { FadeInUp, FadeInRight, SlideInRight, FadeInDown, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, {
+  FadeInUp,
+  FadeInRight,
+  SlideInRight,
+  FadeInDown,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  interpolate,
+  withSpring,
+  Easing,
+} from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
 
-const screenWidth = Dimensions.get('window').width;
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -37,6 +49,12 @@ export default function HomeScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { aiSuggestion } = useAI();
+  const { 
+    learningInsights, 
+    getPersonalizedGreeting, 
+    getNextLearningStep,
+    updatePreferences
+  } = useAIAgent();
 
   const [featuredCourses, setFeaturedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,14 +109,37 @@ export default function HomeScreen() {
 
   // Dynamic greeting based on time
   const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    return getPersonalizedGreeting();
   };
 
   // Personalized insights based on user activity
   const getPersonalizedInsight = () => {
+    // Check if we have AI insights
+    if (learningInsights.length > 0) {
+      // Find a high priority insight first
+      const highPriorityInsight = learningInsights.find(insight => insight.priority === 'high');
+      if (highPriorityInsight) {
+        return {
+          type: highPriorityInsight.type,
+          title: highPriorityInsight.title,
+          message: highPriorityInsight.description,
+          icon: getInsightIcon(highPriorityInsight.type),
+          color: getInsightColor(highPriorityInsight.type),
+        };
+      }
+      
+      // Otherwise use the most recent insight
+      const mostRecentInsight = learningInsights[0];
+      return {
+        type: mostRecentInsight.type,
+        title: mostRecentInsight.title,
+        message: mostRecentInsight.description,
+        icon: getInsightIcon(mostRecentInsight.type),
+        color: getInsightColor(mostRecentInsight.type),
+      };
+    }
+    
+    // Fallback to default insights based on user activity
     const { streak, sessionsToday, totalTime } = userActivity;
     
     if (streak >= 7) {
@@ -128,6 +169,42 @@ export default function HomeScreen() {
       icon: <Brain size={20} color={colors.primary[500]} />,
       color: colors.primary[500],
     };
+  };
+  
+  // Get insight icon based on type
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'streak':
+        return <Flame size={20} color={colors.warning[500]} />;
+      case 'progress':
+        return <TrendingUp size={20} color={colors.success[500]} />;
+      case 'achievement':
+        return <Award size={20} color={colors.secondary[500]} />;
+      case 'recommendation':
+        return <Sparkles size={20} color={colors.primary[500]} />;
+      case 'reminder':
+        return <Bell size={20} color={colors.accent[500]} />;
+      default:
+        return <Zap size={20} color={colors.primary[500]} />;
+    }
+  };
+  
+  // Get insight color based on type
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'streak':
+        return colors.warning[500];
+      case 'progress':
+        return colors.success[500];
+      case 'achievement':
+        return colors.secondary[500];
+      case 'recommendation':
+        return colors.primary[500];
+      case 'reminder':
+        return colors.accent[500];
+      default:
+        return colors.primary[500];
+    }
   };
 
   const personalizedInsight = getPersonalizedInsight();
@@ -237,7 +314,26 @@ export default function HomeScreen() {
 
   const handleMoodSelect = (moodId: string) => {
     setSelectedMood(moodId);
-    // Here you would typically save this to user preferences/analytics
+    // Update AI preferences based on mood
+    let learningStyle = null;
+    switch (moodId) {
+      case 'energized':
+        learningStyle = 'kinesthetic';
+        break;
+      case 'focused':
+        learningStyle = 'reading';
+        break;
+      case 'relaxed':
+        learningStyle = 'visual';
+        break;
+      case 'tired':
+        learningStyle = 'auditory';
+        break;
+    }
+    
+    if (learningStyle) {
+      updatePreferences({ learningStyle: learningStyle as any });
+    }
   };
 
   return (
@@ -250,11 +346,11 @@ export default function HomeScreen() {
         >
           <View>
             <Text style={[styles.greeting, { color: colors.textSecondary }]}>
-              {getGreeting()},
+              {getGreeting()}
             </Text>
             <Text style={[styles.userName, { color: colors.text }]}>Alex</Text>
             <Text style={[styles.userStatus, { color: colors.textSecondary }]}>
-              Ready to learn something new?
+              {getNextLearningStep()}
             </Text>
           </View>
           
@@ -292,7 +388,7 @@ export default function HomeScreen() {
             <GlassCard
               style={[styles.insightBanner, { backgroundColor: `${personalizedInsight.color}15` }]}
               interactive
-              onPress={() => {}}
+              onPress={() => router.push('/ai-assistant')}
             >
               <View style={styles.insightContent}>
                 <View style={[styles.insightIcon, { backgroundColor: personalizedInsight.color }]}>
@@ -350,7 +446,7 @@ export default function HomeScreen() {
                       showLabel={false}
                       style={styles.statProgress}
                     />
-                    <Text style={[styles.statTrend, { color: stat.color }]}>{stat.trend}</Text>
+                    <Text style={[styles.trendText, { color: stat.color }]}>{stat.trend}</Text>
                   </Animated.View>
                 ))}
               </View>
@@ -679,7 +775,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
   },
-  statTrend: {
+  trendText: {
     fontSize: 10,
     fontWeight: '600',
   },
