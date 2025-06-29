@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { DataService } from '@/services/DataService';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
+import { useRevenueCat } from '@/context/RevenueCatContext';
 
 interface SettingItemProps {
   icon: React.ReactNode;
@@ -68,6 +69,9 @@ export default function ProfileScreen() {
     streak: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
+
+  // RevenueCat integration
+  const { isPremium } = useRevenueCat();
 
   // Mock integration status
   const [integrationStatus, setIntegrationStatus] = useState({
@@ -198,8 +202,14 @@ export default function ProfileScreen() {
               <View style={styles.profileInfo}>
                 <Text style={[styles.name, { color: colors.text }]}>Alex Johnson</Text>
                 <Text style={[styles.email, { color: colors.textSecondary }]}>alex.johnson@example.com</Text>
-                <View style={[styles.membershipBadge, { backgroundColor: colors.secondary[100] }]}>
-                  <Text style={[styles.membershipText, { color: colors.secondary[700] }]}>Free Account</Text>
+                <View style={[styles.membershipBadge, { 
+                  backgroundColor: isPremium ? colors.secondary[100] : colors.neutral[100] 
+                }]}>
+                  <Text style={[styles.membershipText, { 
+                    color: isPremium ? colors.secondary[700] : colors.neutral[700] 
+                  }]}>
+                    {isPremium ? 'Premium Member' : 'Free Account'}
+                  </Text>
                 </View>
               </View>
               
@@ -213,28 +223,30 @@ export default function ProfileScreen() {
             </Animated.View>
 
             {/* Premium Upgrade Banner */}
-            <Animated.View entering={FadeInUp.delay(150).duration(500)} style={styles.premiumBannerContainer}>
-              <TouchableOpacity 
-                style={[styles.premiumBanner, { backgroundColor: colors.primary[50] }]}
-                onPress={handlePremiumPress}
-                activeOpacity={0.9}
-              >
-                <View style={styles.premiumBannerContent}>
-                  <View style={[styles.premiumIcon, { backgroundColor: colors.primary[500] }]}>
-                    <Sparkles size={24} color="white" />
+            {!isPremium && (
+              <Animated.View entering={FadeInUp.delay(150).duration(500)} style={styles.premiumBannerContainer}>
+                <TouchableOpacity 
+                  style={[styles.premiumBanner, { backgroundColor: colors.primary[50] }]}
+                  onPress={handlePremiumPress}
+                  activeOpacity={0.9}
+                >
+                  <View style={styles.premiumBannerContent}>
+                    <View style={[styles.premiumIcon, { backgroundColor: colors.primary[500] }]}>
+                      <Sparkles size={24} color="white" />
+                    </View>
+                    <View style={styles.premiumTextContainer}>
+                      <Text style={[styles.premiumTitle, { color: colors.primary[700] }]}>
+                        Upgrade to Premium
+                      </Text>
+                      <Text style={[styles.premiumDescription, { color: colors.primary[600] }]}>
+                        Unlock all courses, coaching sessions, and more
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.premiumTextContainer}>
-                    <Text style={[styles.premiumTitle, { color: colors.primary[700] }]}>
-                      Upgrade to Premium
-                    </Text>
-                    <Text style={[styles.premiumDescription, { color: colors.primary[600] }]}>
-                      Unlock all courses, coaching sessions, and more
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={20} color={colors.primary[500]} />
-              </TouchableOpacity>
-            </Animated.View>
+                  <ChevronRight size={20} color={colors.primary[500]} />
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
             {/* Profile Integration Status */}
             <Animated.View entering={FadeInUp.delay(200).duration(500)} style={styles.integrationSection}>
@@ -501,7 +513,7 @@ export default function ProfileScreen() {
               <SettingItem
                 icon={<CreditCard size={22} color={colors.primary[500]} />}
                 title="Subscription"
-                subtitle="Upgrade to Premium"
+                subtitle={isPremium ? "Premium Plan" : "Upgrade to Premium"}
                 onPress={handlePremiumPress}
               />
             </Animated.View>
