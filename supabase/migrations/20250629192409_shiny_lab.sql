@@ -512,9 +512,9 @@ $$;
 
 -- Sample categories
 INSERT INTO categories (name, description, icon, color) VALUES
-  ('Technology', 'Programming, AI, and tech skills', '\node_modules\tinysrgb\public\icons\svg\008-code.svg', '#3B82F6'),
+  ('Technology', 'Programming, AI, and tech skills', 'code', '#3B82F6'),
   ('Business', 'Entrepreneurship and business skills', 'briefcase', '#10B981'),
-  ('Design', 'UI/UX, graphic design, and creativity', 'palette', '#F59E0B'),
+  ('Design', 'UI/UX, graphic design, and creativity', 'palette', '#F59E0B'),
   ('Marketing', 'Digital marketing and growth strategies', 'trending-up', '#EF4444'),
   ('Personal Development', 'Self-improvement and productivity', 'user', '#8B5CF6'),
   ('Health & Fitness', 'Wellness and physical fitness', 'heart', '#EC4899')
@@ -570,27 +570,314 @@ INSERT INTO instructors (name, title, bio, avatar_url, email, rating, total_stud
     'amanda.foster@example.com',
     4.9,
     3400,
-    6이었다
+    6
+  ),
+  (
+    'Jake Thompson',
+    'Certified Personal Trainer & Nutritionist',
+    'Former Olympic athlete turned fitness coach, specializing in sustainable lifestyle changes.',
+    'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400',
+    'jake.thompson@example.com',
+    4.8,
+    5600,
+    10
+  )
+ON CONFLICT DO NOTHING;
 
-System: ### Changes Made
-1. **Categories Policy Fix**:
-   - Replaced the `IF NOT EXISTS` check for the `categories` policy with `DROP POLICY IF EXISTS` followed by `CREATE POLICY` to resolve the duplicate policy error (`ERROR: 42710`).
+-- Sample courses
+DO $$
+DECLARE
+  tech_id uuid;
+  business_id uuid;
+  design_id uuid;
+  marketing_id uuid;
+  personal_id uuid;
+  health_id uuid;
+  sarah_id uuid;
+  marcus_id uuid;
+  elena_id uuid;
+  david_id uuid;
+  amanda_id uuid;
+  jake_id uuid;
+BEGIN
+  -- Get category IDs
+  SELECT id INTO tech_id FROM categories WHERE name = 'Technology' LIMIT 1;
+  SELECT id INTO business_id FROM categories WHERE name = 'Business' LIMIT 1;
+  SELECT id INTO design_id FROM categories WHERE name = 'Design' LIMIT 1;
+  SELECT id INTO marketing_id FROM categories WHERE name = 'Marketing' LIMIT 1;
+  SELECT id INTO personal_id FROM categories WHERE name = 'Personal Development' LIMIT 1;
+  SELECT id INTO health_id FROM categories WHERE name = 'Health & Fitness' LIMIT 1;
+  
+  -- Get instructor IDs
+  SELECT id INTO sarah_id FROM instructors WHERE email = 'sarah.chen@example.com' LIMIT 1;
+  SELECT id INTO marcus_id FROM instructors WHERE email = 'marcus.johnson@example.com' LIMIT 1;
+  SELECT id INTO elena_id FROM instructors WHERE email = 'elena.rodriguez@example.com' LIMIT 1;
+  SELECT id INTO david_id FROM instructors WHERE email = 'david.kim@example.com' LIMIT 1;
+  SELECT id INTO amanda_id FROM instructors WHERE email = 'amanda.foster@example.com' LIMIT 1;
+  SELECT id INTO jake_id FROM instructors WHERE email = 'jake.thompson@example.com' LIMIT 1;
+  
+  -- Insert courses if categories and instructors exist
+  IF tech_id IS NOT NULL AND sarah_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'Complete React Development Bootcamp',
+      'Master React from basics to advanced concepts including hooks, context, and modern patterns.',
+      'https://images.pexels.com/photos/11035380/pexels-photo-11035380.jpeg?auto=compress&cs=tinysrgb&w=800',
+      1200,
+      'intermediate',
+      199.99,
+      true,
+      true,
+      4.8,
+      342,
+      2150,
+      tech_id,
+      sarah_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+  
+  IF business_id IS NOT NULL AND marcus_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'Startup Fundamentals: From Idea to Launch',
+      'Learn how to validate your business idea, build an MVP, and launch your startup successfully.',
+      'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800',
+      900,
+      'beginner',
+      149.99,
+      true,
+      true,
+      4.9,
+      567,
+      3200,
+      business_id,
+      marcus_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+  
+  IF design_id IS NOT NULL AND elena_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'UX Design Masterclass: Research to Prototype',
+      'Complete guide to user experience design including research methods, wireframing, and prototyping.',
+      'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=800',
+      800,
+      'intermediate',
+      179.99,
+      true,
+      true,
+      4.7,
+      289,
+      1850,
+      design_id,
+      elena_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+  
+  IF marketing_id IS NOT NULL AND david_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'Digital Marketing Strategy & Analytics',
+      'Data-driven approach to digital marketing including SEO, social media, and conversion optimization.',
+      'https://images.pexels.com/photos/265087/pexels-photo-265087.jpeg?auto=compress&cs=tinysrgb&w=800',
+      600,
+      'intermediate',
+      129.99,
+      true,
+      true,
+      4.6,
+      445,
+      2800,
+      marketing_id,
+      david_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+  
+  IF personal_id IS NOT NULL AND amanda_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'Peak Performance: Executive Leadership',
+      'Develop executive presence, decision-making skills, and leadership strategies for high performance.',
+      'https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800',
+      720,
+      'advanced',
+      249.99,
+      true,
+      true,
+      4.9,
+      178,
+      950,
+      personal_id,
+      amanda_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+  
+  IF health_id IS NOT NULL AND jake_id IS NOT NULL THEN
+    INSERT INTO courses (
+      title, 
+      description, 
+      thumbnail_url, 
+      duration_minutes, 
+      level, 
+      price, 
+      is_featured, 
+      is_published,
+      rating,
+      review_count,
+      enrolled_count,
+      category_id,
+      instructor_id
+    ) VALUES (
+      'Functional Fitness & Nutrition Fundamentals',
+      'Build sustainable fitness habits with functional movement patterns and evidence-based nutrition.',
+      'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&w=800',
+      480,
+      'beginner',
+      99.99,
+      false,
+      true,
+      4.5,
+      234,
+      1200,
+      health_id,
+      jake_id
+    ) ON CONFLICT DO NOTHING;
+  END IF;
+END
+$$;
 
-2. **uid() Function**:
-   - The `uid()` function creation was already using `CREATE OR REPLACE FUNCTION`, which safely overwrites any existing function, so no changes were needed here.
+-- Sample lessons for React course
+DO $$
+DECLARE
+  course_id uuid;
+BEGIN
+  SELECT id INTO course_id FROM courses WHERE title = 'Complete React Development Bootcamp' LIMIT 1;
+  
+  IF course_id IS NOT NULL THEN
+    INSERT INTO lessons (course_id, title, description, content_type, duration_minutes, order_index, is_preview) VALUES
+      (
+        course_id,
+        'Introduction to React',
+        'Overview of React and setting up your development environment',
+        'video',
+        25,
+        1,
+        true
+      ),
+      (
+        course_id,
+        'Building Your First Component',
+        'Create your first React component and understand JSX',
+        'video',
+        35,
+        2,
+        false
+      ),
+      (
+        course_id,
+        'State and Props',
+        'Learn about React state management and component props',
+        'video',
+        40,
+        3,
+        false
+      )
+    ON CONFLICT DO NOTHING;
+  END IF;
+END
+$$;
 
-3. **Other Policies**:
-   - Applied the same `DROP POLICY IF EXISTS` approach to all policy creation blocks to prevent potential future conflicts for other tables, ensuring the script can be run multiple times without errors.
+-- Sample achievements
+INSERT INTO achievements (title, description, icon, criteria, points, badge_color) VALUES
+  ('First Steps', 'Complete your first lesson', 'play-circle', '{"type": "lesson_completed", "count": 1}', 10, '#10B981'),
+  ('Course Crusher', 'Complete your first course', 'award', '{"type": "course_completed", "count": 1}', 50, '#F59E0B'),
+  ('Learning Streak', 'Learn for 7 consecutive days', 'calendar', '{"type": "daily_streak", "count": 7}', 25, '#8B5CF6'),
+  ('Knowledge Seeker', 'Enroll in 5 different courses', 'book-open', '{"type": "course_enrolled", "count": 5}', 30, '#3B82F6'),
+  ('Community Helper', 'Help other learners in discussions', 'message-circle', '{"type": "discussion_helpful", "count": 10}', 20, '#EC4899')
+ON CONFLICT DO NOTHING;
 
-### Notes
-- **Robust Policy Handling**: The `DROP POLICY IF EXISTS` approach ensures that existing policies are safely dropped before recreation, preventing the `42710` error for the `categories` table and potential errors for other tables.
-- **Preserved Functionality**: The schema, triggers, sample data, and indexes remain unchanged to maintain the original functionality.
-- **Running the Script**: Execute this script in your Supabase SQL editor. The `IF NOT EXISTS` checks for tables and triggers, combined with `ON CONFLICT DO NOTHING` for inserts, ensure safe re-execution.
-- **Verification**: After running, verify the policies with:
-  ```sql
-  SELECT * FROM pg_policies WHERE tablename = 'categories';
-  ```
-- **Additional Policies**: All policy blocks now use `DROP POLICY IF EXISTS` to prevent conflicts, making the script more robust for repeated runs.
-- **Supabase Considerations**: Ensure your Supabase role has sufficient permissions to drop and create policies. If issues persist, check your role privileges in Supabase.
+-- Update course counts in categories
+UPDATE categories SET course_count = (
+  SELECT COUNT(*) FROM courses WHERE courses.category_id = categories.id AND courses.is_published = true
+);
 
-If you encounter further errors or need specific adjustments, let me know with details, and I can provide targeted solutions!
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_courses_category_id ON courses(category_id);
+CREATE INDEX IF NOT EXISTS idx_courses_instructor_id ON courses(instructor_id);
+CREATE INDEX IF NOT EXISTS idx_courses_is_featured ON courses(is_featured);
+CREATE INDEX IF NOT EXISTS idx_courses_is_published ON courses(is_published);
+CREATE INDEX IF NOT EXISTS idx_lessons_course_id ON lessons(course_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_order_index ON lessons(order_index);
+CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id);
+CREATE INDEX IF NOT EXISTS idx_enrollments_course_id ON enrollments(course_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user_id ON lesson_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_id ON lesson_progress(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_sessions_user_id ON coaching_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_coaching_sessions_coach_id ON coaching_sessions(coach_id);
+CREATE INDEX IF NOT EXISTS idx_user_achievements_user_id ON user_achievements(user_id);
+CREATE INDEX IF NOT EXISTS idx_learning_path_courses_path_id ON learning_path_courses(learning_path_id);
