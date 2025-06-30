@@ -1,12 +1,15 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { StyleSheet, View, Platform, Text } from 'react-native';
+import { StyleSheet, View, Platform, Text, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chrome as Home, BookOpen, Calendar, FolderOpen, User } from 'lucide-react-native';
 import { getThemeColors } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { AIFloatingButton } from '@/components/ai/AIFloatingButton';
 import Animated, { useAnimatedStyle, withSpring, useSharedValue } from 'react-native-reanimated';
+
+// Import your Bolt Logo
+const boltLogo = require('@/assets/images/Bolt Logo.jpg');
 
 interface TabIconProps {
   focused: boolean;
@@ -171,6 +174,15 @@ export default function TabLayout() {
       
       {/* AI Floating Button */}
       <AIFloatingButton />
+
+      {/* Bolt Badge at the bottom of all tabs */}
+      <View style={styles.boltBadgeContainer}>
+        <Image
+          source={boltLogo}
+          style={styles.boltBadge}
+          resizeMode="contain"
+        />
+      </View>
     </View>
   );
 }
@@ -211,5 +223,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  boltBadgeContainer: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  boltBadge: {
+    width: 60,      // Adjust size as needed
+    height: 32,
   },
 });
