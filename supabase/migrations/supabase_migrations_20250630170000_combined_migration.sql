@@ -15,15 +15,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create function to get current user ID
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'uid') THEN
-    CREATE FUNCTION uid() RETURNS uuid AS $$
-      SELECT auth.uid();
-    $$ LANGUAGE sql STABLE;
-  END IF;
-END
-$$;
+CREATE OR REPLACE FUNCTION uid()
+RETURNS uuid AS $$
+  SELECT auth.uid();
+$$ LANGUAGE sql STABLE;
 
 -- ============================================================
 -- Table Definitions
