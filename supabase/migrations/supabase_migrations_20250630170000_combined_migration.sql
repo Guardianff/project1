@@ -441,8 +441,8 @@ BEGIN
   DROP POLICY IF EXISTS "Premium resources are viewable by authenticated users" ON resources;
   CREATE POLICY "Premium resources are viewable by authenticated users"
     ON resources FOR SELECT
-    TO authenticated
-    USING (is_premium = true);
+    TO public
+    USING (is_premium = true AND role() = 'authenticated');
 END
 $$;
 
