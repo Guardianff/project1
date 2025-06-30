@@ -91,6 +91,14 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE instructors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing RLS policies to avoid errors
+DROP POLICY IF EXISTS "Categories are viewable by everyone" ON categories;
+DROP POLICY IF EXISTS "Authenticated users can manage categories" ON categories;
+DROP POLICY IF EXISTS "Instructors are viewable by everyone" ON instructors;
+DROP POLICY IF EXISTS "Authenticated users can manage instructors" ON instructors;
+DROP POLICY IF EXISTS "Published courses are viewable by everyone" ON courses;
+DROP POLICY IF EXISTS "Authenticated users can manage courses" ON courses;
+
 -- Create policies for categories
 CREATE POLICY "Categories are viewable by everyone"
   ON categories
@@ -137,26 +145,29 @@ CREATE INDEX IF NOT EXISTS idx_courses_is_featured ON courses(is_featured);
 CREATE INDEX IF NOT EXISTS idx_courses_is_published ON courses(is_published);
 CREATE INDEX IF NOT EXISTS idx_courses_featured_published ON courses(is_featured, is_published);
 
--- Create updated_at trigger function
+-- Create or replace trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Create triggers for updated_at
+-- Drop and create triggers to avoid duplication
+DROP TRIGGER IF EXISTS update_categories_updated_at ON categories;
 CREATE TRIGGER update_categories_updated_at
   BEFORE UPDATE ON categories
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_instructors_updated_at ON instructors;
 CREATE TRIGGER update_instructors_updated_at
   BEFORE UPDATE ON instructors
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_courses_updated_at ON courses;
 CREATE TRIGGER update_courses_updated_at
   BEFORE UPDATE ON courses
   FOR EACH ROW
