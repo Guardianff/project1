@@ -278,12 +278,14 @@ $$;
 -- Categories policy
 DO $$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'categories' AND policyname = 'Categories are viewable by everyone') THEN
-    CREATE POLICY "Categories are viewable by everyone"
-      ON categories FOR SELECT
-      TO public
-      USING (true);
-  END IF;
+  -- Drop the existing policy if it exists
+  DROP POLICY IF EXISTS "Categories are viewable by everyone" ON categories;
+
+  -- Create the policy
+  CREATE POLICY "Categories are viewable by everyone"
+    ON categories FOR SELECT
+    TO public
+    USING (true);
 END
 $$;
 
@@ -491,7 +493,6 @@ $$;
 -- Create triggers for updated_at with existence checks
 DO $$
 BEGIN
-  -- Check if trigger exists before creating it for each table
   IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'handle_updated_at' AND tgrelid = 'profiles'::regclass) THEN
     CREATE TRIGGER handle_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
   END IF;
