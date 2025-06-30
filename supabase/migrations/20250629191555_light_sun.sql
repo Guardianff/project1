@@ -269,6 +269,44 @@ CREATE OR REPLACE FUNCTION uid() RETURNS uuid AS $$
   SELECT auth.uid();
 $$ LANGUAGE sql STABLE;
 
+-- Drop existing RLS policies to avoid errors during re-execution
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+
+DROP POLICY IF EXISTS "Categories are viewable by everyone" ON categories;
+
+DROP POLICY IF EXISTS "Instructors are viewable by everyone" ON instructors;
+
+DROP POLICY IF EXISTS "Published courses are viewable by everyone" ON courses;
+
+DROP POLICY IF EXISTS "Preview lessons are viewable by everyone" ON lessons;
+DROP POLICY IF EXISTS "Course lessons are viewable by enrolled users" ON lessons;
+
+DROP POLICY IF EXISTS "Users can view own enrollments" ON enrollments;
+DROP POLICY IF EXISTS "Users can create own enrollments" ON enrollments;
+DROP POLICY IF EXISTS "Users can update own enrollments" ON enrollments;
+
+DROP POLICY IF EXISTS "Users can view own lesson progress" ON lesson_progress;
+DROP POLICY IF EXISTS "Users can create own lesson progress" ON lesson_progress;
+DROP POLICY IF EXISTS "Users can update own lesson progress" ON lesson_progress;
+
+DROP POLICY IF EXISTS "Users can view own coaching sessions" ON coaching_sessions;
+DROP POLICY IF EXISTS "Users can create own coaching sessions" ON coaching_sessions;
+DROP POLICY IF EXISTS "Users can update own coaching sessions" ON coaching_sessions;
+
+DROP POLICY IF EXISTS "Free resources are viewable by everyone" ON resources;
+DROP POLICY IF EXISTS "Premium resources are viewable by authenticated users" ON resources;
+
+DROP POLICY IF EXISTS "Achievements are viewable by everyone" ON achievements;
+
+DROP POLICY IF EXISTS "Users can view own achievements" ON user_achievements;
+DROP POLICY IF EXISTS "Users can create own achievements" ON user_achievements;
+
+DROP POLICY IF EXISTS "Learning paths are viewable by everyone" ON learning_paths;
+
+DROP POLICY IF EXISTS "Learning path courses are viewable by everyone" ON learning_path_courses;
+
 -- RLS Policies
 
 -- Profiles: Users can only see and modify their own profile
