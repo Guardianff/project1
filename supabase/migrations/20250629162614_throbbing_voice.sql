@@ -235,9 +235,32 @@ ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE learning_paths ENABLE ROW LEVEL SECURITY;
 ALTER TABLE learning_path_courses ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid duplication errors)
+DROP POLICY IF EXISTS "Categories are viewable by everyone" ON categories;
+DROP POLICY IF EXISTS "Instructors are viewable by everyone" ON instructors;
+DROP POLICY IF EXISTS "Published courses are viewable by everyone" ON courses;
+DROP POLICY IF EXISTS "Lessons of published courses are viewable by everyone" ON lessons;
+DROP POLICY IF EXISTS "Users can view their own enrollments" ON enrollments;
+DROP POLICY IF EXISTS "Users can create their own enrollments" ON enrollments;
+DROP POLICY IF EXISTS "Users can update their own enrollments" ON enrollments;
+DROP POLICY IF EXISTS "Users can view their own lesson progress" ON lesson_progress;
+DROP POLICY IF EXISTS "Users can create their own lesson progress" ON lesson_progress;
+DROP POLICY IF EXISTS "Users can update their own lesson progress" ON lesson_progress;
+DROP POLICY IF EXISTS "Users can view their own coaching sessions" ON coaching_sessions;
+DROP POLICY IF EXISTS "Users can create their own coaching sessions" ON coaching_sessions;
+DROP POLICY IF EXISTS "Users can update their own coaching sessions" ON coaching_sessions;
+DROP POLICY IF EXISTS "Non-premium resources are viewable by everyone" ON resources;
+DROP POLICY IF EXISTS "Premium resources are viewable by authenticated users" ON resources;
+DROP POLICY IF EXISTS "Achievements are viewable by everyone" ON achievements;
+DROP POLICY IF EXISTS "Users can view their own achievements" ON user_achievements;
+DROP POLICY IF EXISTS "Users can create their own achievements" ON user_achievements;
+DROP POLICY IF EXISTS "Learning paths are viewable by everyone" ON learning_paths;
+DROP POLICY IF EXISTS "Learning path courses are viewable by everyone" ON learning_path_courses;
+
 -- RLS Policies
 
 -- Categories: Public read access
+
 CREATE POLICY "Categories are viewable by everyone"
   ON categories FOR SELECT
   TO public
