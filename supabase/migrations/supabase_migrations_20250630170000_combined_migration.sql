@@ -1,17 +1,3 @@
-/*
-  # Combined Migration for Learning Platform
-
-  This migration merges all previous migrations into a single file, including:
-    - Schema creation for all required tables (profiles, categories, instructors, courses, lessons, enrollments, lesson_progress, coaching_sessions, resources, achievements, user_achievements, learning_paths, learning_path_courses)
-    - Triggers and utility functions
-    - Row Level Security (RLS) enablement and policies
-    - Unique constraints
-    - Indexes for performance
-    - Sample data seeding
-
-  The migration is idempotent and safe to re-run.
-*/
-
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
