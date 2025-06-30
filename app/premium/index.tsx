@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,7 +22,6 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import Animated, { FadeInUp, FadeInRight } from 'react-native-reanimated';
 import { supabase } from '@/lib/supabase';
-import { useRevenueCat } from '@/context/RevenueCatContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -54,30 +53,7 @@ export default function PremiumSubscriptionScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const [selectedTier, setSelectedTier] = useState<string>('annual');
-  
-  // RevenueCat integration
-  const { 
-    isPremium, 
-    isLoading, 
-    currentOffering,
-    purchaseMonthly, 
-    purchaseAnnual, 
-    purchaseLifetime,
-    restorePurchases
-  } = useRevenueCat();
-
-  // Redirect if already premium
-  useEffect(() => {
-    if (isPremium) {
-      Alert.alert(
-        'Premium Active',
-        'You already have an active premium subscription!',
-        [
-          { text: 'OK', onPress: () => router.back() }
-        ]
-      );
-    }
-  }, [isPremium, router]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const pricingTiers: PricingTier[] = [
     {
@@ -191,6 +167,8 @@ export default function PremiumSubscriptionScreen() {
   ];
 
   const handleSubscribe = async (tierId: string) => {
+    setIsLoading(true);
+    
     try {
       // Check if user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -207,42 +185,27 @@ export default function PremiumSubscriptionScreen() {
         return;
       }
       
-      // Handle purchase based on selected tier
-      if (Platform.OS === 'web') {
-        // Web doesn't support in-app purchases, show a message
-        Alert.alert(
-          'Web Not Supported',
-          'In-app purchases are not available on web. Please use our mobile app to subscribe.',
-          [{ text: 'OK' }]
-        );
-        return;
-      }
-      
-      switch (tierId) {
-        case 'monthly':
-          await purchaseMonthly();
-          break;
-        case 'annual':
-          await purchaseAnnual();
-          break;
-        case 'lifetime':
-          await purchaseLifetime();
-          break;
-        default:
-          break;
-      }
+      // In a real implementation, this would redirect to a payment processor
+      // or initiate the RevenueCat purchase flow
+      Alert.alert(
+        'Subscription Information',
+        'To complete your subscription, you would be redirected to a secure payment page. This is a demo implementation.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Learn More', 
+            onPress: () => {
+              // In a real app, this would open a web page with more information
+              console.log('User wants to learn more about subscriptions');
+            } 
+          }
+        ]
+      );
     } catch (error) {
       console.error('Subscription error:', error);
       Alert.alert('Error', 'There was an error processing your subscription. Please try again later.');
-    }
-  };
-
-  const handleRestorePurchases = async () => {
-    try {
-      await restorePurchases();
-    } catch (error) {
-      console.error('Restore error:', error);
-      Alert.alert('Error', 'There was an error restoring your purchases. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -376,18 +339,6 @@ export default function PremiumSubscriptionScreen() {
                 </EnhancedCard>
               </Animated.View>
             ))}
-
-            {/* Restore Purchases Button */}
-            <Animated.View entering={FadeInUp.delay(600).duration(500)}>
-              <TouchableOpacity 
-                style={styles.restorePurchasesButton}
-                onPress={handleRestorePurchases}
-              >
-                <Text style={[styles.restorePurchasesText, { color: colors.primary[500] }]}>
-                  Restore Previous Purchases
-                </Text>
-              </TouchableOpacity>
-            </Animated.View>
           </View>
 
           {/* Feature Comparison */}
@@ -663,18 +614,8 @@ export default function PremiumSubscriptionScreen() {
                   title="Upgrade to Premium"
                   variant="primary"
                   onPress={() => handleSubscribe(selectedTier)}
-                  loading={isLoading}
                   style={styles.ctaButton}
                 />
-                <TouchableOpacity 
-                  style={styles.restoreButton}
-                  onPress={handleRestorePurchases}
-                  disabled={isLoading}
-                >
-                  <Text style={[styles.restoreText, { color: colors.primary[500] }]}>
-                    Already purchased? Restore
-                  </Text>
-                </TouchableOpacity>
                 <Text style={[styles.ctaFooter, { color: colors.textSecondary }]}>
                   No risk with our 30-day money-back guarantee
                 </Text>
@@ -859,15 +800,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 12,
-  },
-  restorePurchasesButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginTop: 8,
-  },
-  restorePurchasesText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   comparisonSection: {
     paddingHorizontal: 20,
@@ -1072,14 +1004,6 @@ const styles = StyleSheet.create({
   ctaButton: {
     minWidth: 200,
     marginBottom: 16,
-  },
-  restoreButton: {
-    paddingVertical: 8,
-    marginBottom: 12,
-  },
-  restoreText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   ctaFooter: {
     fontSize: 12,
