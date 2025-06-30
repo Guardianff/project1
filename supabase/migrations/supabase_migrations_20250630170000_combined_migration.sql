@@ -442,7 +442,7 @@ BEGIN
   CREATE POLICY "Premium resources are viewable by authenticated users"
     ON resources FOR SELECT
     TO public
-    USING (is_premium = true AND role() = 'authenticated');
+    USING (is_premium = true);
 END
 $$;
 
